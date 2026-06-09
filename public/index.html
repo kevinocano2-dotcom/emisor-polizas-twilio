@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Emisor Administrativo Twilio</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;margin:0;color:#111827}
+    main{max-width:880px;margin:auto;padding:22px}
+    .card{background:white;border:1px solid #d1d5db;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+    h1{margin:0 0 6px;font-size:24px}.muted{color:#6b7280;font-size:14px;line-height:1.4}
+    code{background:#eef2ff;padding:2px 5px;border-radius:6px}
+    input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0 12px}
+    button{border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:800;padding:11px 14px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+    pre{white-space:pre-wrap;background:#0f172a;color:#dbeafe;border-radius:12px;padding:14px;overflow:auto}
+  </style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>Emisor Administrativo por Twilio WhatsApp</h1>
+    <p class="muted">Webhook recomendado para Twilio: <code>/twilio/webhook</code>. Palabra clave: <code>EMITIR_ADMINISTRATIVO</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Estado</h2>
+    <button onclick="loadHealth()">Actualizar</button>
+    <pre id="health">Presiona Actualizar</pre>
+  </div>
+
+  <div class="card">
+    <h2>Ajustar último folio</h2>
+    <p class="muted">Si el último emitido fue SANTM 2-981, captura 981. El siguiente será 982.</p>
+    <input id="last" type="number" placeholder="981">
+    <button onclick="saveSettings()">Guardar último folio</button>
+    <pre id="settings"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Prueba rápida por portal</h2>
+    <div class="grid">
+      <input id="name" placeholder="Nombre" value="NUBIA LUZ NAVARRO ROMERO">
+      <input id="auto" placeholder="Auto" value="CHEVROLET S14">
+      <input id="vin" placeholder="VIN" value="1GCCS19WXY8253800">
+      <input id="modelYear" placeholder="Modelo" value="2000">
+      <input id="body" placeholder="Carrocería" value="PICK UP">
+      <input id="address" placeholder="Domicilio" value="CDA EL PARAJE 15, FRACC GALA RESIDENCIAL">
+    </div>
+    <button onclick="emitir()">Emitir PDF de prueba</button>
+  </div>
+</main>
+<script>
+async function loadHealth(){
+  const r=await fetch('/health');
+  health.textContent=JSON.stringify(await r.json(),null,2);
+}
+async function saveSettings(){
+  const r=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lastFolioNumber:Number(last.value)})});
+  settings.textContent=JSON.stringify(await r.json(),null,2);
+  loadHealth();
+}
+async function emitir(){
+  const data={name:name.value,auto:auto.value,vin:vin.value,modelYear:modelYear.value,body:body.value,address:address.value,plates:'',prima:360,gastos:135.69};
+  const r=await fetch('/api/emitir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if(!r.ok){alert(await r.text()); return;}
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='poliza.pdf'; a.click(); URL.revokeObjectURL(url);
+  loadHealth();
+}
+loadHealth();
+</script>
+</body>
+</html>
