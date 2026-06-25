@@ -3,13 +3,13 @@ import path from 'node:path';
 import { buildPdfBuffer, cleanFileName, normalizePolicyInput } from './pdf_generator.js';
 import { clearSession, getSession, isUserAllowed, nextFolioNumber, normalizePhone, recordPolicy, setSession } from './state.js';
 
-const KEYWORD = 'EMITIR_ADMINISTRATIVO';
+const KEYWORDS = ['EMITIR', 'POLIZA', 'EMITIR_ADMINISTRATIVO'];
 const FOLIO_PREFIX = process.env.FOLIO_PREFIX || 'SANTM 2-';
 const GENERATED_DIR = path.join(process.cwd(), 'generated');
 
 const steps = [
   { key: 'name', prompt: 'Nombre completo del asegurado:' },
-  { key: 'address', prompt: 'Domicilio del asegurado:' },
+  { key: 'address', prompt: 'Domicilio del asegurado: ej. Musaro 63' },
   { key: 'auto', prompt: 'Automóvil / descripción del vehículo. Ejemplo: VOLKSWAGEN GOLF GLS:' },
   { key: 'body', prompt: 'Carrocería. Ejemplo: HATCHBACK 4D, PICK UP, SEDAN:' },
   { key: 'modelYear', prompt: 'Modelo / año del vehículo:' },
