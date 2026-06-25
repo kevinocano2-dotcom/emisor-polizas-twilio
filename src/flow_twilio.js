@@ -3,7 +3,7 @@ import path from 'node:path';
 import { buildPdfBuffer, cleanFileName, normalizePolicyInput } from './pdf_generator.js';
 import { clearSession, getSession, isUserAllowed, nextFolioNumber, normalizePhone, recordPolicy, setSession } from './state.js';
 
-const KEYWORDS = ['EMITIR', 'POLIZA', 'EMITIR_ADMINISTRATIVO'];
+const KEYWORDS = ['EMITIR'];
 const FOLIO_PREFIX = process.env.FOLIO_PREFIX || 'SANTM 2-';
 const GENERATED_DIR = path.join(process.cwd(), 'generated');
 
