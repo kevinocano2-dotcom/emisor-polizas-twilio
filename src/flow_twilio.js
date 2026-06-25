@@ -4,6 +4,7 @@ import { buildPdfBuffer, cleanFileName, normalizePolicyInput } from './pdf_gener
 import { clearSession, getSession, isUserAllowed, nextFolioNumber, normalizePhone, recordPolicy, setSession } from './state.js';
 
 const KEYWORDS = ['EMITIR'];
+const KEYWORD_LABEL = KEYWORDS.join(' o ');
 const FOLIO_PREFIX = process.env.FOLIO_PREFIX || 'SANTM 2-';
 const GENERATED_DIR = path.join(process.cwd(), 'generated');
 
@@ -18,6 +19,10 @@ const steps = [
 
 function upper(value) {
   return String(value || '').trim().toUpperCase();
+}
+
+function isKeyword(value) {
+  return KEYWORDS.includes(upper(value));
 }
 
 function normalizeAnswer(stepKey, raw) {
@@ -49,17 +54,21 @@ function summary(data) {
     `Carrocería: ${data.body}\n` +
     `Modelo: ${data.modelYear}\n` +
     `Serie/VIN: ${data.vin}\n\n` +
-    `Responde CONFIRMAR para emitir o CANCELAR para salir.`;
+    `Responde CONFIRMAR para emitir o CANCELAR para reiniciar.`;
 }
 
 async function generatePdfFile(data, baseUrl, sender) {
   ensureGeneratedDir();
+
   const folioNumber = await nextFolioNumber();
   const policy = normalizePolicyInput({ ...data, plates: '' }, folioNumber, FOLIO_PREFIX, new Date());
+
   const pdf = buildPdfBuffer(policy);
   const filename = `${cleanFileName(policy.folio)}_${cleanFileName(policy.name)}.pdf`;
   const filepath = path.join(GENERATED_DIR, filename);
+
   fs.writeFileSync(filepath, pdf);
+
   await recordPolicy({
     phone: sender,
     folio: policy.folio,
@@ -68,6 +77,7 @@ async function generatePdfFile(data, baseUrl, sender) {
     vin: policy.vin,
     filename
   });
+
   return {
     policy,
     filename,
@@ -81,49 +91,74 @@ export async function handleTwilioMessage({ from, body, baseUrl }) {
   const text = String(body || '').trim();
   const upperText = upper(text);
 
+  // CANCELAR debe funcionar siempre, aunque el formulario esté trabado.
+  if (/^CANCELAR$/i.test(text)) {
+    await clearSession(sender);
+    return { body: `Proceso cancelado y formulario reiniciado. Para iniciar de nuevo manda ${KEYWORD_LABEL}.` };
+  }
+
   if (!text) {
-    return { body: `Manda ${KEYWORD} para iniciar emisión.` };
+    return { body: `Para iniciar emisión manda ${KEYWORD_LABEL}.` };
   }
 
   if (!(await isUserAllowed(sender))) {
     return { body: 'Este número no está autorizado o se encuentra bloqueado. Comunícate con administración.' };
   }
 
-  if (/^CANCELAR$/i.test(text)) {
-    await clearSession(sender);
-    return { body: `Proceso cancelado. Para iniciar de nuevo manda ${KEYWORD}.` };
-  }
-
   if (/^(AYUDA|HELP|MENU|MENÚ)$/i.test(upperText)) {
-    return { body: `Para emitir una póliza administrativa manda: ${KEYWORD}\n\nDurante la captura puedes responder CANCELAR para salir.` };
+    return { body: `Para emitir una póliza administrativa manda: ${KEYWORD_LABEL}\n\nDurante la captura puedes responder CANCELAR para reiniciar.` };
   }
 
   let session = await getSession(sender);
 
-  if (!session) {
-    if (upperText !== KEYWORD) {
-      return { body: `Para iniciar emisión manda la palabra clave: ${KEYWORD}` };
-    }
+  // Si manda la palabra clave en cualquier momento, reinicia el formulario desde cero.
+  if (isKeyword(upperText)) {
     session = { stepIndex: 0, data: {} };
     await setSession(sender, session);
     return { body: `Iniciamos emisión administrativa.\n\n${steps[0].prompt}` };
   }
 
+  if (!session) {
+    return { body: `Para iniciar emisión manda la palabra clave: ${KEYWORD_LABEL}` };
+  }
+
   if (session.awaitingConfirm) {
     if (/^CONFIRMAR$/i.test(text)) {
-      const data = session.data;
-      await clearSession(sender);
-      const result = await generatePdfFile(data, baseUrl, sender);
-      return {
-        body: `Listo. Folio emitido: ${result.policy.folio}`,
-        mediaUrl: result.mediaUrl,
-        filename: result.filename
-      };
+      try {
+        const data = session.data;
+
+        // Se limpia antes para que no quede atorado aunque falle algo.
+        await clearSession(sender);
+
+        const result = await generatePdfFile(data, baseUrl, sender);
+
+        return {
+          body: `Listo. Folio emitido: ${result.policy.folio}`,
+          mediaUrl: result.mediaUrl,
+          filename: result.filename
+        };
+      } catch (err) {
+        console.error('Error generando póliza:', err);
+
+        // Asegura que el formulario quede reiniciado.
+        await clearSession(sender);
+
+        return {
+          body: `Ocurrió un error generando la póliza. El formulario se reinició. Para intentar de nuevo manda ${KEYWORD_LABEL}.`
+        };
+      }
     }
-    return { body: 'Responde CONFIRMAR para emitir o CANCELAR para salir.' };
+
+    return { body: 'Responde CONFIRMAR para emitir o CANCELAR para reiniciar.' };
   }
 
   const step = steps[session.stepIndex];
+
+  if (!step) {
+    await clearSession(sender);
+    return { body: `El formulario estaba incompleto o dañado. Se reinició. Para iniciar de nuevo manda ${KEYWORD_LABEL}.` };
+  }
+
   const value = normalizeAnswer(step.key, text);
 
   if (value === null) {
