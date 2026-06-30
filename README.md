@@ -254,3 +254,27 @@ Cuando ocurre un error al emitir/guardar en Firestore:
 - si el PDF alcanzó a generarse, también manda el enlace temporal
 
 Esto evita perder la información capturada cuando Firestore está sin cuota o falla.
+
+## v27 Afiliación MYR
+
+Se agregó generación de hoja de afiliación usando la plantilla `templates/MYR-799-79.pdf`.
+
+Comandos WhatsApp:
+- `EMITIR`: genera solo la póliza administrativa como antes.
+- `EMITIRYAFILIACION`: genera la póliza y la hoja MYR; pregunta placa/EXP, teléfono del cliente, nombres para afiliación y color.
+- `AFILIACION`: genera solo la hoja MYR.
+
+Reglas de la hoja MYR:
+- ESTADO siempre es `SONORA`.
+- MUNICIPIO siempre es `HERMOSILLO`.
+- EXP se llena con el número de placa capturado.
+- FECHA usa la fecha del día en zona horaria `America/Hermosillo`.
+- El teléfono del cliente se pregunta y se guarda en Firestore/local, pero no se imprime en el PDF.
+- Los nombres se capturan separados por comas: el primero va en `NOMBRE 1`; máximo dos adicionales van en `NOMBRE 2`.
+- Se eliminan campos rellenables, fondos azules de formulario y el botón `ENVIAR`; el PDF queda como documento fijo.
+
+Nueva colección/base:
+- Firestore: `affiliations`
+- Local: `data/affiliations.json`
+
+El panel admin ahora muestra el contador de afiliaciones y una sección de Afiliaciones MYR.
