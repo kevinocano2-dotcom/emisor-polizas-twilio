@@ -233,3 +233,24 @@ Cambios:
 - Se evita que una promesa no manejada tumbe Node/Render.
 
 Nota: si Firestore ya agotó cuota del día, hay que esperar el reinicio diario de cuota o activar billing. Esta versión evita el crash y reduce lecturas, pero no puede saltarse una cuota ya agotada.
+
+
+## v25 Firebase no-local fix
+
+Corrección importante:
+- Si Firebase está configurado, el sistema ya NO cambia a archivos locales cuando Firestore falla.
+- Esto evita que parezca que se perdieron datos previos o que lo nuevo se guardó en otro lugar.
+- Se corrigió la lectura de pólizas antiguas: ya no usa orderBy(createdAtMs), porque eso ocultaba documentos viejos que no tenían ese campo.
+- Si Firestore está sin cuota, el panel mostrará error JSON en vez de guardar en local.
+
+
+## v26 respaldo por WhatsApp si Firebase falla al emitir
+
+Cuando ocurre un error al emitir/guardar en Firestore:
+- el usuario recibe el error corto
+- el sistema manda WhatsApp al número de administración configurado en ADMIN_NOTIFY_NUMBERS
+- el aviso incluye los datos capturados para guardar después:
+  cliente, domicilio, auto, carrocería, modelo, serie, folio si alcanzó a generarse, total y vigencia
+- si el PDF alcanzó a generarse, también manda el enlace temporal
+
+Esto evita perder la información capturada cuando Firestore está sin cuota o falla.
