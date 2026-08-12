@@ -30,6 +30,26 @@ process.on('unhandledRejection', err => {
 app.set('trust proxy', true);
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.get('/carterapro-inbox.html', (req,res)=>{
+  res.set({
+    'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma':'no-cache',
+    'Expires':'0',
+    'Surrogate-Control':'no-store'
+  });
+  res.sendFile(path.join(__dirname, '..', 'public', 'carterapro-inbox.html'));
+});
+
+app.get('/carterapro-chat.html', (req,res)=>{
+  res.set({
+    'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma':'no-cache',
+    'Expires':'0',
+    'Surrogate-Control':'no-store'
+  });
+  res.sendFile(path.join(__dirname, '..', 'public', 'carterapro-chat.html'));
+});
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 function xmlEscape(value) {
@@ -566,8 +586,9 @@ app.get('/api/admin/carterapro/inbox', requireAdmin, async (req,res)=>{
 app.get('/api/admin/carterapro/thread/:phone', requireAdmin, async (req,res)=>{
   try{
     const phone=normalizePhone(req.params.phone);
+    const requestedLimit=Math.max(20,Math.min(Number(req.query.limit||80),2000));
     const [messages, leads, onboarding, conversations]=await Promise.all([
-      loadMessages({phone,limit:500}),
+      loadMessages({phone,limit:requestedLimit}),
       loadCarteraProLeads({limit:2000}),
       loadCarteraProOnboarding({limit:2000}),
       loadConversationIndex({limit:2000})

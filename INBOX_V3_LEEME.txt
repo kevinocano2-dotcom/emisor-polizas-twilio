@@ -1,0 +1,22 @@
+INBOX V3 - FIX FORZADO DE SCROLL
+
+Esta versión NO depende del flexbox para contener el chat.
+
+Desktop:
+- header fijo dentro del panel: 64 px
+- composer fijo dentro del panel: 114 px
+- mensajes: position:absolute entre ambos
+- overflow-y:scroll forzado
+- scrollbar visible
+- wheel capturado directamente por el contenedor
+- no-cache para evitar servir la versión anterior
+- marca visible “v3” en la esquina superior izquierda
+
+COMPROBACIÓN:
+Después del deploy abre:
+https://emisor-polizas-twilio.onrender.com/carterapro-inbox.html?token=TU_TOKEN&v=3
+
+Debes ver “v3” junto a CarteraPro · Inbox.
+Si NO aparece v3, Render/GitHub todavía está sirviendo el archivo anterior.
+
+No cambia Twilio, Firebase, Netlify ni el emisor.
