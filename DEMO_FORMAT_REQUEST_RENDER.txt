@@ -1,0 +1,24 @@
+RENDER - SOPORTE SOLICITUDES DE FORMATO DESDE DEMO
+
+Nuevo endpoint:
+POST /carterapro/api/demo-format-request
+
+Acepta:
+- JSON cuando el prospecto no adjunta PDF.
+- application/pdf cuando sí autoriza adjuntar el PDF.
+
+Registra:
+- lead tipo demo_format
+- onboarding método demo_format
+- alerta al ADMIN_NOTIFY_NUMBERS
+- PDF opcional en Firebase Storage si FIREBASE_STORAGE_BUCKET está configurado.
+  Sin Storage, queda temporalmente en Render.
+
+En /carterapro/admin:
+- las solicitudes aparecen como “Formato demo”
+- si hay PDF, aparece “Descargar PDF”.
+
+Variable opcional:
+CARTERAPRO_DEMO_PDF_MAX_MB=12
+
+No se cambiaron los flujos del emisor ni del bot de ventas.

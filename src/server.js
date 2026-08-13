@@ -20,6 +20,7 @@ const FOLIO_PREFIX = process.env.FOLIO_PREFIX || 'SANTM 2-';
 const GENERATED_DIR = path.join(process.cwd(), 'generated');
 const CARTERAPRO_UPLOAD_DIR = path.join(process.cwd(), 'data', 'carterapro_uploads');
 const CARTERAPRO_UPLOAD_MAX_MB = Math.max(10, Math.min(Number(process.env.CARTERAPRO_UPLOAD_MAX_MB || 100), 250));
+const CARTERAPRO_DEMO_PDF_MAX_MB = Math.max(2, Math.min(Number(process.env.CARTERAPRO_DEMO_PDF_MAX_MB || 12), 25));
 fs.mkdirSync(CARTERAPRO_UPLOAD_DIR, { recursive: true });
 
 process.on('unhandledRejection', err => {
@@ -984,9 +985,112 @@ app.post('/carterapro/api/registration-alert', async (req,res)=>{
   res.json({ok:true});
 });
 
+app.options('/carterapro/api/demo-format-request', (req,res)=>{
+  registrationAlertCors(req,res);
+  res.status(204).end();
+});
+app.post(
+  '/carterapro/api/demo-format-request',
+  express.raw({type:['application/pdf','application/octet-stream'],limit:`${CARTERAPRO_DEMO_PDF_MAX_MB}mb`}),
+  async (req,res)=>{
+    registrationAlertCors(req,res);
+    const origin=String(req.headers.origin||'');
+    const allowed=String(process.env.CARTERAPRO_ALLOWED_ORIGINS || 'https://carteraproautos.netlify.app')
+      .split(',').map(v=>v.trim()).filter(Boolean);
+    if(origin && !allowed.includes(origin)) return res.status(403).json({ok:false,error:'Origen no permitido'});
+    if(!allowRegistrationAlert(req)) return res.status(429).json({ok:false,error:'Demasiadas solicitudes'});
+
+    const dec=value=>{try{return decodeURIComponent(String(value||''))}catch{return String(value||'')}};
+    const isPdf=Buffer.isBuffer(req.body);
+    const body=isPdf?{}:(req.body||{});
+    const name=dec(req.headers['x-cartera-name']||body.name).trim().slice(0,120);
+    const phone=normalizePhone(dec(req.headers['x-cartera-phone']||body.phone));
+    const email=dec(req.headers['x-cartera-email']||body.email).trim().toLowerCase().slice(0,180);
+    const company=dec(req.headers['x-cartera-company']||body.company).trim().slice(0,120);
+    const missing=dec(req.headers['x-cartera-missing']||(Array.isArray(body.missing)?body.missing.join(', '):body.missing)).trim().slice(0,400);
+    const originalName=dec(req.headers['x-cartera-file']||body.fileName||'poliza.pdf').replace(/[\\/]/g,'_').slice(0,140);
+    const requestSource=String(req.headers['x-cartera-source']||body.source||'demo').toLowerCase()==='portal'?'portal':'demo';
+    const sourceUsername=dec(req.headers['x-cartera-username']||body.username).trim().slice(0,80);
+    const sourceUserUid=dec(req.headers['x-cartera-user-uid']||body.userUid).trim().slice(0,160);
+    const methodName=requestSource==='portal'?'portal_format':'demo_format';
+
+    if(!name || !phone || phone.length<10) return res.status(400).json({ok:false,error:'Nombre y WhatsApp son obligatorios'});
+    if(isPdf && (!req.body.length || !/\.pdf$/i.test(originalName))) return res.status(400).json({ok:false,error:'El archivo debe ser PDF'});
+
+    const token=`${requestSource}format_${Date.now()}_${crypto.randomBytes(5).toString('hex')}`;
+    let tempPath='',upload=null;
+    try{
+      await saveCarteraProOnboarding({
+        token,phone,name,email,company,plan:'',method:methodName,
+        status:'format_review',source:requestSource,missingFields:missing,sourceUsername,sourceUserUid,
+        originalFileName:originalName||'',createdAt:new Date().toISOString()
+      });
+
+      if(isPdf){
+        const safeName=(originalName||'poliza.pdf').replace(/[^a-zA-Z0-9._-]+/g,'_');
+        tempPath=path.join(CARTERAPRO_UPLOAD_DIR,`${Date.now()}_${crypto.randomBytes(6).toString('hex')}_${safeName}`);
+        fs.writeFileSync(tempPath,req.body);
+        upload=await storeCarteraProUpload({
+          token,localPath:tempPath,filename:originalName||'poliza.pdf',
+          contentType:'application/pdf',size:req.body.length
+        });
+        tempPath='';
+        await saveCarteraProOnboarding({
+          token,phone,name,email,company,method:methodName,status:'format_review',
+          source:requestSource,missingFields:missing,sourceUsername,sourceUserUid,originalFileName:originalName||'',upload,
+          completedAt:new Date().toISOString()
+        });
+      }
+
+      await recordCarteraProLead({
+        id:`${methodName}_${token}`,phone,name,email,company,
+        type:methodName,source:requestSource,status:'format_review',
+        note:[
+          `Formato por adaptar. Faltan: ${missing||'-'}`,
+          `Archivo: ${originalName||'-'}`,
+          `PDF recibido: ${upload?'sí':'no'}`,
+          upload?`Almacenamiento: ${upload.storedIn}`:''
+        ].filter(Boolean).join(' · ')
+      });
+
+      await notifyCarteraProAdmin([
+        requestSource==='portal'
+          ? '🧩 *Formato de póliza por adaptar (PORTAL)*'
+          : '🧩 *Nuevo formato de póliza por adaptar (DEMO)*',
+        `Nombre: ${name}`,
+        sourceUsername?`Usuario: ${sourceUsername}`:'',
+        `WhatsApp: ${phone}`,
+        email?`Correo: ${email}`:'',
+        `Compañía: ${company||'Por identificar'}`,
+        `No detectado: ${missing||'-'}`,
+        `Archivo: ${originalName||'-'}`,
+        `PDF adjunto: ${upload?'Sí':'No'}`,
+        upload?`Almacenamiento: ${upload.storedIn}`:'',
+        '',
+        'Revisar en CarteraPro ventas / Onboarding.'
+      ].filter(Boolean).join('\n'));
+
+      res.json({ok:true,requestId:token,fileReceived:Boolean(upload),storedIn:upload?.storedIn||''});
+    }catch(err){
+      if(tempPath)try{fs.unlinkSync(tempPath)}catch{}
+      console.error('Error solicitud formato:',err);
+      res.status(err?.type==='entity.too.large'?413:500).json({
+        ok:false,
+        error:err?.type==='entity.too.large'
+          ?`El PDF excede ${CARTERAPRO_DEMO_PDF_MAX_MB} MB`
+          :(err?.message||'No se pudo registrar la solicitud')
+      });
+    }
+  }
+);
+
 app.get('/carterapro/admin', requireAdmin, async (req, res) => {
   const [leads,onboarding] = await Promise.all([loadCarteraProLeads({limit:300}),loadCarteraProOnboarding({limit:300})]);
-  const rows = onboarding.map(x => `<tr><td>${escHtml(x.createdAt||'')}</td><td>${escHtml(x.phone||'')}</td><td>${escHtml(x.name||'')}</td><td>${escHtml(x.plan||'')}</td><td>${escHtml(x.method||'')}</td><td>${escHtml(x.status||'')}</td><td>${x.credentialsEncrypted?`<a href="/carterapro/admin/onboarding/${encodeURIComponent(x.token)}?token=${encodeURIComponent(adminTokenFromReq(req))}">Ver acceso</a>`:''}${x.upload?`${x.credentialsEncrypted?' · ':''}<a href="/carterapro/admin/file/${encodeURIComponent(x.token)}?token=${encodeURIComponent(adminTokenFromReq(req))}">Descargar ZIP</a>`:''}</td></tr>`).join('');
+  const rows = onboarding.map(x => {
+    const fileLabel=x.upload?(String(x.upload.contentType||'').includes('pdf')?'Descargar PDF':'Descargar ZIP'):'';
+    const methodLabel=x.method==='demo_format'?'Formato demo':x.method==='portal_format'?'Formato portal':x.method;
+    return `<tr><td>${escHtml(x.createdAt||'')}</td><td>${escHtml(x.phone||'')}</td><td>${escHtml(x.name||'')}</td><td>${escHtml(x.plan||'')}</td><td>${escHtml(methodLabel||'')}</td><td>${escHtml(x.status||'')}</td><td>${x.credentialsEncrypted?`<a href="/carterapro/admin/onboarding/${encodeURIComponent(x.token)}?token=${encodeURIComponent(adminTokenFromReq(req))}">Ver acceso</a>`:''}${x.upload?`${x.credentialsEncrypted?' · ':''}<a href="/carterapro/admin/file/${encodeURIComponent(x.token)}?token=${encodeURIComponent(adminTokenFromReq(req))}">${fileLabel}</a>`:''}</td></tr>`;
+  }).join('');
   const leadRows=leads.slice(0,100).map(x=>`<tr><td>${escHtml(x.createdAt||'')}</td><td>${escHtml(x.type||'')}</td><td>${escHtml(x.phone||'')}</td><td>${escHtml(x.name||'')}</td><td>${escHtml(x.company||'')}</td><td>${escHtml(x.plan||'')}</td><td>${escHtml(x.status||'')}</td></tr>`).join('');
   res.type('html').send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CarteraPro Ventas</title><style>body{font-family:system-ui;background:#f5f7fb;color:#111827;padding:20px}.w{max-width:1200px;margin:auto}.card{background:#fff;border:1px solid #e3e7ef;border-radius:16px;padding:16px;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}th{background:#fafafa}a{color:#3152f3}.pill{padding:5px 8px;border-radius:999px;background:#eafaf4;color:#087657}</style></head><body><div class="w"><div class="card"><h1>CarteraPro Ventas</h1><p>Prospectos, compras reportadas y carga inicial. <span class="pill">Mismo Render del emisor</span></p><p><a style="display:inline-block;background:#3152f3;color:#fff;text-decoration:none;padding:9px 12px;border-radius:10px;font-weight:800" href="/carterapro-inbox.html?token=${encodeURIComponent(adminTokenFromReq(req))}">💬 Abrir Inbox de ventas</a></p><p>Firebase Storage: <b>${escHtml(getFirebaseStorageBucketName()||'No configurado')}</b></p></div><div class="card"><h2>Onboarding</h2><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>WhatsApp</th><th>Nombre</th><th>Plan</th><th>Método</th><th>Estado</th><th>Acción</th></tr></thead><tbody>${rows||'<tr><td colspan="7">Sin onboarding todavía.</td></tr>'}</tbody></table></div></div><div class="card"><h2>Prospectos</h2><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>WhatsApp</th><th>Nombre</th><th>Compañía</th><th>Plan</th><th>Estado</th></tr></thead><tbody>${leadRows||'<tr><td colspan="7">Sin prospectos todavía.</td></tr>'}</tbody></table></div></div></div></body></html>`);
 });
