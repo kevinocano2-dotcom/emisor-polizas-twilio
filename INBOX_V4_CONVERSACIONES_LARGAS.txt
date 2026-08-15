@@ -1,0 +1,24 @@
+INBOX V4 - SOLUCION PARA CONVERSACIONES LARGAS
+
+El Inbox queda como bandeja rápida y ya solo solicita los últimos 80 mensajes.
+
+Para una conversación larga usa el botón:
+↗ Conversación completa
+
+y se abre:
+/carterapro-chat.html?phone=TELEFONO&token=ADMIN_TOKEN&v=4
+
+La vista completa:
+- no tiene columnas laterales;
+- header fijado directamente al viewport;
+- historial fijado directamente entre header y compositor;
+- compositor fijado directamente al fondo del viewport;
+- inicialmente renderiza solo los 40 mensajes más recientes;
+- botón "Cargar mensajes anteriores" agrega 40 por vez sin perder posición;
+- puede recuperar hasta 2000 mensajes del chat;
+- respuesta manual siempre visible;
+- botón "Último mensaje";
+- exportación TXT completa;
+- actualización automática solo cuando estás al final.
+
+Esto evita renderizar cientos de burbujas al mismo tiempo y elimina la dependencia del layout de tres columnas para responder.
