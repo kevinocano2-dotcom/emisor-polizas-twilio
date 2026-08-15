@@ -1,8 +1,0 @@
-Backend de solicitudes de formato:
-POST /carterapro/api/demo-format-request
-
-X-Cartera-Source:
-- demo -> Formato demo
-- portal -> Formato portal
-
-El panel administrativo permite descargar el PDF cuando fue adjuntado y autorizado.
