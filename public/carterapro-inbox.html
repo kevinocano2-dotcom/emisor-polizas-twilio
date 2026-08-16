@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>CarteraPro · Inbox de ventas</title>
+<style>
+:root{
+  --bg:#eef2f8;--panel:#fff;--text:#0e1525;--muted:#748097;--line:#e0e6ef;
+  --blue:#4f6bff;--violet:#7357f6;--green:#059669;--amber:#d97706;--red:#dc4961;
+  --nav:#0c1325;--nav2:#151f39;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input,textarea,select{font:inherit}
+.app{display:grid;grid-template-columns:350px minmax(420px,1fr) 285px;height:100vh;min-height:0;overflow:hidden}
+.left{background:linear-gradient(180deg,var(--nav),var(--nav2));color:#fff;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.brand{padding:16px 17px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand h1{font-size:16px;margin:0;letter-spacing:-.4px}.brand small{display:block;color:#8390a9;font-size:9px;margin-top:3px}
+.live{font-size:8px;font-weight:900;color:#8ff0c9;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.18);padding:6px 8px;border-radius:999px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 11px}
+.stat{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.045);padding:8px;border-radius:11px}
+.stat span{display:block;color:#8491a8;font-size:7px;text-transform:uppercase;letter-spacing:.6px;font-weight:900}.stat b{display:block;font-size:17px;margin-top:3px}
+.searchWrap{padding:0 11px 8px}.searchWrap input{width:100%;background:#151e33;color:#fff;border:1px solid #26324f;border-radius:10px;padding:10px;font-size:10px;outline:none}
+.filters{display:flex;gap:5px;padding:0 11px 9px;overflow:auto}
+.filter{white-space:nowrap;border:1px solid #2a3652;background:#151e33;color:#aab4c7;padding:6px 8px;border-radius:999px;font-size:8px;font-weight:900;cursor:pointer}
+.filter.active{background:#536dff;color:#fff;border-color:#647cff}
+.list{overflow:auto;flex:1;min-height:0;border-top:1px solid rgba(255,255,255,.06);overscroll-behavior:contain;scrollbar-gutter:stable}
+.conv{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.055);cursor:pointer;display:grid;grid-template-columns:36px 1fr auto;gap:9px;align-items:start}
+.conv:hover{background:rgba(255,255,255,.04)}.conv.selected{background:linear-gradient(90deg,rgba(79,107,255,.18),rgba(79,107,255,.06));box-shadow:inset 3px 0 #6f85ff}
+.avatar{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#506cff,#7a5cf7);font-size:11px;font-weight:950}
+.convName{font-size:10.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.convPhone{font-size:8px;color:#79859b;margin-top:2px}
+.last{font-size:9px;color:#98a3b6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:5px;max-width:205px}
+.time{font-size:7px;color:#6f7b90;white-space:nowrap;text-align:right}.unread{margin-top:8px;background:#596fff;color:#fff;border-radius:999px;font-size:7px;font-weight:950;min-width:18px;height:18px;padding:0 5px;display:grid;place-items:center}
+.stage{display:inline-flex;font-size:7px;font-weight:950;padding:4px 6px;border-radius:999px;margin-top:5px;background:#202a44;color:#9eacc7}
+.stage.purchase{background:rgba(245,158,11,.13);color:#f7bd63}.stage.registration{background:rgba(124,92,255,.15);color:#b9a8ff}.stage.files_received,.stage.credentials_received{background:rgba(16,185,129,.14);color:#77e4bb}.stage.demo{background:rgba(79,107,255,.16);color:#9caaff}
+.center{position:relative;display:block;min-width:0;min-height:0;height:100vh;overflow:hidden;background:#f8fafc}
+.chatHead{position:absolute;z-index:10;left:0;right:0;top:0;height:64px;min-height:64px;background:#fff;border-bottom:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.chatHead h2{font-size:14px;margin:0}.chatHead p{font-size:8.5px;color:var(--muted);margin:3px 0 0}
+.headBtns{display:flex;gap:6px}
+.iconBtn{border:1px solid var(--line);background:#fff;color:#4e5a6d;border-radius:9px;padding:7px 9px;font-size:8px;font-weight:900;cursor:pointer}
+.messages{position:absolute;z-index:1;left:0;right:0;top:64px;bottom:114px;height:auto!important;min-height:0!important;max-height:none!important;overflow-y:scroll!important;overflow-x:hidden;padding:17px 18px 28px;background:
+radial-gradient(circle at 80% 0,rgba(79,107,255,.045),transparent 25%),
+linear-gradient(#f8fafc,#f5f7fb);overscroll-behavior:contain;scrollbar-gutter:stable;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.dayNote{text-align:center;color:#9aa3b1;font-size:8px;margin:9px 0}
+.row{display:flex;margin:7px 0}.row.in{justify-content:flex-start}.row.out{justify-content:flex-end}
+.bubble{max-width:min(74%,680px);border-radius:15px;padding:9px 11px;font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 6px rgba(18,28,50,.04)}
+.in .bubble{background:#fff;border:1px solid #e2e7ef;border-bottom-left-radius:5px}
+.out .bubble{background:#e7ecff;border:1px solid #d3dcff;border-bottom-right-radius:5px}
+.out.manual .bubble{background:#e7f8f1;border-color:#d1eee2}
+.out.emisor .bubble{background:#f2efff;border-color:#e1d9ff}
+.meta{font-size:7px;color:#8791a0;margin-top:4px;display:flex;justify-content:space-between;gap:10px}
+.media{font-size:8px;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(99,113,139,.25)}
+.empty{height:100%;display:grid;place-items:center;color:#8893a5;text-align:center;padding:30px}.empty b{display:block;color:#586478;margin-bottom:5px}
+.composer{position:absolute!important;z-index:20;left:0;right:0;bottom:0;height:114px;min-height:114px;overflow:hidden;background:#fff;border-top:1px solid var(--line);padding:8px 12px 10px;box-shadow:0 -6px 18px rgba(15,23,42,.07)}
+.quick{display:flex;gap:5px;overflow:auto;padding-bottom:7px}.quick button{white-space:nowrap;border:1px solid #e0e5ee;background:#f9fafc;color:#637086;border-radius:999px;padding:5px 8px;font-size:7.5px;font-weight:900;cursor:pointer}
+.sendRow{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:end}
+textarea{width:100%;min-height:48px;max-height:130px;resize:vertical;border:1px solid #dfe4ec;border-radius:11px;padding:9px 10px;font-size:10px;outline:none}
+.send{height:48px;border:0;border-radius:11px;background:linear-gradient(135deg,#4f6bff,#7459f6);color:#fff;padding:0 16px;font-size:9px;font-weight:950;cursor:pointer}
+.right{background:#fff;border-left:1px solid var(--line);overflow:auto;min-height:0;height:100vh;padding:13px;overscroll-behavior:contain;scrollbar-gutter:stable}
+.sideTitle{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:#8993a4;font-weight:950;margin:3px 0 8px}
+.profile{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.profile h3{font-size:13px;margin:0 0 3px}.profile .phone{font-size:9px;color:#7e899a}
+.kv{display:grid;grid-template-columns:78px 1fr;gap:5px;font-size:9px;padding:6px 0;border-bottom:1px solid #f0f2f5}.kv:last-child{border:0}.kv span:first-child{color:#8a94a4}.kv b{font-weight:850;word-break:break-word}
+.actionGrid{display:grid;gap:6px}.action{min-height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;color:#4b576a;font-size:8px;font-weight:900;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px}
+.action.primary{background:#101827;color:#fff;border-color:#101827}.action.green{background:#eaf8f2;color:#08755b;border-color:#d3eee4}
+.infoNote{background:#f5f7ff;border:1px solid #e1e6ff;border-radius:11px;padding:9px;font-size:8.5px;line-height:1.5;color:#687493}
+.bottomAdmin{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.jumpBottom{position:absolute;right:18px;bottom:124px;z-index:30;border:1px solid #d9e0ea;background:#fff;color:#536174;border-radius:999px;padding:8px 11px;font-size:8px;font-weight:950;box-shadow:0 5px 16px rgba(15,23,42,.12);cursor:pointer;display:none}
+.jumpBottom.show{display:block}
+.jumpBottom:hover{background:#f7f9fc}
+.toast{position:fixed;right:16px;top:16px;background:#101827;color:#fff;border-radius:10px;padding:9px 11px;font-size:9px;display:none;z-index:99}
+@media(max-width:1050px){.app{grid-template-columns:310px 1fr}.right{display:none}}
+@media(max-width:720px){
+body{overflow:hidden}
+.app{display:flex;flex-direction:column;height:100dvh;min-height:0;overflow:hidden}
+.left{height:36dvh;min-height:240px;flex:0 0 36dvh}
+.center{position:relative;height:64dvh;min-height:0;flex:1 1 auto}
+.chatHead{position:absolute;top:0;height:60px;min-height:60px}
+.messages{position:absolute!important;top:60px!important;bottom:108px!important;overflow-y:scroll!important;padding:12px 10px 24px!important}
+.composer{position:absolute!important;bottom:0!important;height:108px!important;min-height:108px!important;padding:6px 8px!important}
+.composer .quick{height:27px}
+.composer .sendRow{height:61px}
+.composer textarea,.composer .send{height:53px!important;min-height:53px!important;max-height:53px!important}
+.bubble{max-width:88%}
+.right{display:none}
+.jumpBottom{bottom:116px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="left">
+    <div class="brand">
+      <div><h1>CarteraPro · Inbox <span style="font-size:7px;color:#8ea7ff">v4</span></h1><small>Ventas y seguimiento WhatsApp</small></div>
+      <span class="live">● ACTIVO</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Chats</span><b id="sChats">0</b></div>
+      <div class="stat"><span>No leídos</span><b id="sUnread">0</b></div>
+      <div class="stat"><span>En cierre</span><b id="sClosing">0</b></div>
+    </div>
+    <div class="searchWrap"><input id="search" placeholder="Buscar nombre, teléfono, mensaje..." oninput="renderList()"></div>
+    <div class="filters">
+      <button class="filter active" data-filter="sales" onclick="setFilter('sales',this)">CarteraPro</button>
+      <button class="filter" data-filter="ads" onclick="setFilter('ads',this)">Facebook Ads</button>
+      <button class="filter" data-filter="unread" onclick="setFilter('unread',this)">No leídos</button>
+      <button class="filter" data-filter="closing" onclick="setFilter('closing',this)">Por cerrar</button>
+      <button class="filter" data-filter="all" onclick="setFilter('all',this)">Todos</button>
+      <button class="filter" data-filter="emisor" onclick="setFilter('emisor',this)">Emisor</button>
+    </div>
+    <div class="list" id="list"><div class="conv">Cargando...</div></div>
+  </aside>
+
+  <section class="center">
+    <div class="chatHead">
+      <div><h2 id="chatName">Selecciona un chat</h2><p id="chatSub">Vista rápida · para chats largos usa Conversación completa · Inbox v4</p></div>
+      <div class="headBtns">
+        <button class="iconBtn" id="fullChatBtn" onclick="openFullChat()" style="background:#101827;color:#fff;border-color:#101827">↗ Conversación completa</button>
+        <button class="iconBtn" onclick="refreshAll()">Actualizar</button>
+        <button class="iconBtn" onclick="exportChat()">Exportar</button>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="empty"><div><b>Inbox CarteraPro</b>Selecciona una conversación del lado izquierdo.</div></div>
+    </div>
+    <button id="jumpBottom" class="jumpBottom" onclick="scrollToBottom(true)">↓ Último mensaje</button>
+    <div class="composer">
+      <div class="quick">
+        <button onclick="quick('Hola. Te comparto la demo interactiva de CarteraPro:\\nhttps://carteraproautos.netlify.app/demo.html\\n\\nPuedes probarla y después te ayudo a elegir el plan.')">Enviar demo</button>
+        <button onclick="quick('Plan Básico · $499 MXN al mes\\nhttps://mpago.la/1aeVAtg')">Básico $499</button>
+        <button onclick="quick('Plan Plus · $698 MXN al mes\\nhttps://mpago.la/1edpYeR')">Plus $698</button>
+        <button onclick="quick('La carga inicial de tu cartera está incluida sin costo adicional. Puedes elegir acceso temporal al portal o subir un ZIP con los PDF de los últimos 12 meses.')">Carga inicial</button>
+      </div>
+      <div class="sendRow">
+        <textarea id="reply" placeholder="Responder manualmente por WhatsApp..."></textarea>
+        <button class="send" onclick="sendReply()">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="right">
+    <div class="sideTitle">Prospecto</div>
+    <div id="profile" class="profile"><div class="infoNote">Selecciona una conversación para ver los datos del prospecto.</div></div>
+    <div class="sideTitle">Acciones</div>
+    <div class="actionGrid">
+      <button class="action primary" onclick="openFullChat()">↗ Abrir conversación completa</button>
+      <a id="waLink" class="action" href="#" target="_blank">Abrir WhatsApp</a>
+      <a id="onboardingLink" class="action green" href="#" target="_blank" style="display:none">Ver carga inicial</a>
+      <button class="action" onclick="markRead()">Marcar leído</button>
+      <button class="action" onclick="exportChat()">Exportar conversación TXT</button>
+    </div>
+    <div class="bottomAdmin">
+      <div class="sideTitle">Mantenimiento</div>
+      <div class="infoNote">El índice permanente evita que un chat desaparezca cuando crece el historial. Usa reconstruir una sola vez después del primer deploy para recuperar conversaciones anteriores.</div>
+      <button class="action" style="width:100%;margin-top:7px" onclick="rebuildIndex()">Reconstruir índice histórico</button>
+      <a class="action" style="margin-top:6px" id="oldAdmin" href="#">Panel completo del emisor</a>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const qs=new URLSearchParams(location.search);
+const token=qs.get('token')||localStorage.getItem('adminToken')||'';
+if(token) localStorage.setItem('adminToken',token);
+let all=[],currentPhone='',currentThread=[],currentInfo=null,currentFilter='sales';
+
+function h(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function initials(name,phone){const s=(name||phone||'?').trim();const parts=s.split(/\s+/).filter(Boolean);return ((parts[0]?.[0]||'')+(parts[1]?.[0]||'')).toUpperCase()||'?'}
+function relTime(iso){const t=new Date(iso||0).getTime();if(!t)return'';const d=Date.now()-t;if(d<60000)return'ahora';if(d<3600000)return Math.floor(d/60000)+'m';if(d<86400000)return Math.floor(d/3600000)+'h';if(d<604800000)return Math.floor(d/86400000)+'d';return new Date(t).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})}
+function fmt(iso){try{return new Date(iso).toLocaleString('es-MX')}catch{return iso||''}}
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>e.style.display='none',2200)}
+function isNearChatBottom(){
+ const e=document.getElementById('messages');
+ return !e || (e.scrollHeight-e.scrollTop-e.clientHeight)<90;
+}
+function scrollToBottom(smooth=false){
+ const e=document.getElementById('messages');
+ if(!e)return;
+ if(smooth && e.scrollTo)e.scrollTo({top:e.scrollHeight,behavior:'smooth'});
+ else e.scrollTop=e.scrollHeight;
+ updateJumpBottom();
+}
+function updateJumpBottom(){
+ const b=document.getElementById('jumpBottom'),e=document.getElementById('messages');
+ if(!b||!e)return;
+ const away=(e.scrollHeight-e.scrollTop-e.clientHeight)>140;
+ b.classList.toggle('show',away && !!currentPhone);
+}
+async function api(path,opts={}){
+ const r=await fetch(path,{...opts,headers:{...(opts.headers||{}),'Content-Type':'application/json','x-admin-token':token}});
+ const data=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(data.error||'Error');
+ return data;
+}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderList()}
+function isClosing(c){return ['purchase','registration','onboarding','credentials_received','files_received'].includes(c.stage?.key)}
+function filtered(){
+ const q=document.getElementById('search').value.trim().toLowerCase();
+ return all.filter(c=>{
+   if(currentFilter==='sales' && c.area!=='carterapro')return false;
+   if(currentFilter==='ads' && c.origin!=='facebook_ads')return false;
+   if(currentFilter==='unread' && !Number(c.unreadCount||0))return false;
+   if(currentFilter==='closing' && !isClosing(c))return false;
+   if(currentFilter==='emisor' && c.area!=='emisor')return false;
+   const hay=[c.phone,c.name,c.company,c.lastBody,c.plan,c.stage?.label].join(' ').toLowerCase();
+   return !q||hay.includes(q);
+ });
+}
+function renderList(){
+ const items=filtered();
+ if(!items.length){list.innerHTML='<div style="padding:18px;color:#8290a8;font-size:9px">No hay conversaciones con este filtro.</div>';return}
+ list.innerHTML=items.map(c=>`
+ <div class="conv ${c.phone===currentPhone?'selected':''}" onclick="openThread('${c.phone}')">
+   <div class="avatar">${h(initials(c.name,c.phone))}</div>
+   <div style="min-width:0">
+     <div class="convName">${h(c.name||'Prospecto '+String(c.phone).slice(-4))}</div>
+     <div class="convPhone">+${h(c.phone)} ${c.origin==='facebook_ads'?'· 📣 Facebook Ads':''} ${c.plan?`· ${h(c.plan==='plus'?'Plus':'Básico')}`:''}</div>
+     <div class="stage ${h(c.stage?.key||'')}">${h(c.stage?.label||'Sin clasificar')}</div>
+     <div class="last">${c.lastDirection==='inbound'?'Cliente: ':c.lastSource==='manual'?'Tú: ':'Bot: '}${h(c.lastBody||'')}</div>
+   </div>
+   <div><div class="time">${h(relTime(c.lastAt))}</div>${Number(c.unreadCount||0)?`<div class="unread">${c.unreadCount}</div>`:''}</div>
+ </div>`).join('');
+}
+async function refreshAll(silent=false){
+ try{
+   const d=await api('/api/admin/carterapro/inbox');
+   all=d.conversations||[];
+   sChats.textContent=d.totals?.sales||0;
+   sUnread.textContent=d.totals?.unread||0;
+   sClosing.textContent=(d.totals?.purchase||0)+(d.totals?.registration||0)+(d.totals?.onboarding||0);
+   renderList();
+   if(currentPhone&&!silent) await openThread(currentPhone,true);
+ }catch(e){if(!silent)toast(e.message)}
+}
+function bubbleWho(m){
+ if(m.direction==='inbound')return'Cliente';
+ if(m.source==='manual')return'Tú';
+ if(m.source==='emisor')return'Bot emisor';
+ if(String(m.source||'').includes('carterapro'))return'Bot CarteraPro';
+ if(m.source==='help')return'Bot';
+ return'Bot';
+}
+async function openThread(phone,silent=false){
+ const sameChat=currentPhone===phone;
+ const msgBox=document.getElementById('messages');
+ const previousTop=msgBox?msgBox.scrollTop:0;
+ const wasNearBottom=msgBox?isNearChatBottom():true;
+
+ currentPhone=phone;
+ renderList();
+ try{
+   const d=await api('/api/admin/carterapro/thread/'+encodeURIComponent(phone)+'?limit=80');
+   currentThread=d.messages||[];
+   currentInfo=d;
+   const c=all.find(x=>x.phone===phone)||{};
+   chatName.textContent=d.lead?.name||d.onboarding?.name||c.name||('+'+phone);
+   chatSub.textContent='+'+phone+' · '+(d.stage?.label||'Sin clasificar')+(d.lead?.company?' · '+d.lead.company:'');
+   renderMessages(false);
+
+   // Al abrir otro chat vamos al mensaje más reciente.
+   // En actualizaciones automáticas del mismo chat respetamos la posición
+   // si el usuario está leyendo mensajes antiguos.
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{
+     if(!sameChat || !silent || wasNearBottom) scrollToBottom(false);
+     else {
+       messages.scrollTop=previousTop;
+       updateJumpBottom();
+     }
+   }));
+
+   renderProfile();
+   await refreshAll(true);
+ }catch(e){if(!silent)toast(e.message)}
+}
+function renderMessages(){
+ if(!currentThread.length){messages.innerHTML='<div class="empty"><div><b>Sin mensajes</b>No hay historial para esta conversación.</div></div>';return}
+ messages.innerHTML=currentThread.map(m=>{
+   const inb=m.direction==='inbound';
+   const src=String(m.source||'');
+   const cls=inb?'in':`out ${src==='manual'?'manual':src==='emisor'?'emisor':''}`;
+   const media=m.mediaUrl?`<div class="media">Archivo/media: ${h(m.mediaUrl)}</div>`:'';
+   return `<div class="row ${cls}"><div class="bubble">${h(m.body||'')}${media}<div class="meta"><span>${h(bubbleWho(m))}</span><span>${h(fmt(m.createdAt))}</span></div></div></div>`
+ }).join('');
+ updateJumpBottom();
+}
+function renderProfile(){
+ const l=currentInfo?.lead||{},o=currentInfo?.onboarding||{},s=currentInfo?.stage||{};
+ const phone=currentInfo?.phone||currentPhone;
+ profile.innerHTML=`
+   <h3>${h(l.name||o.name||'Prospecto')}</h3>
+   <div class="phone">+${h(phone)}</div>
+   <div style="margin:9px 0"><span class="stage ${h(s.key||'')}">${h(s.label||'Sin clasificar')}</span></div>
+   <div class="kv"><span>Plan</span><b>${h((l.plan||o.plan)==='plus'?'Plus':(l.plan||o.plan)==='basic'?'Básico':'—')}</b></div>
+   <div class="kv"><span>Compañía</span><b>${h(l.company||o.company||'—')}</b></div>
+   <div class="kv"><span>Correo</span><b>${h(l.email||o.email||'—')}</b></div>
+   <div class="kv"><span>Tipo</span><b>${h(l.type||'—')}</b></div>
+   <div class="kv"><span>Estado</span><b>${h(l.status||o.status||'—')}</b></div>
+   <div class="kv"><span>Carga</span><b>${h(o.method||'—')}</b></div>
+   <div class="kv"><span>Origen</span><b>${h((currentInfo?.conversation?.origin||'')==='facebook_ads'?'Facebook Ads':'WhatsApp / Web')}</b></div>
+   <div class="kv"><span>Anuncio</span><b>${h(currentInfo?.conversation?.referralHeadline||'—')}</b></div>
+   <div class="kv"><span>ID anuncio</span><b>${h(currentInfo?.conversation?.referralSourceId||'—')}</b></div>`;
+ waLink.href='https://wa.me/'+phone;
+ if(o.token){
+   onboardingLink.style.display='flex';
+   onboardingLink.href='/carterapro/admin/onboarding/'+encodeURIComponent(o.token)+'?token='+encodeURIComponent(token);
+ }else onboardingLink.style.display='none';
+ oldAdmin.href='/?token='+encodeURIComponent(token);
+}
+function openFullChat(){
+ if(!currentPhone)return toast('Selecciona un chat');
+ const u='/carterapro-chat.html?phone='+encodeURIComponent(currentPhone)+'&token='+encodeURIComponent(token)+'&v=4';
+ window.open(u,'_blank');
+}
+function quick(text){reply.value=text;reply.focus()}
+async function sendReply(){
+ if(!currentPhone)return toast('Selecciona un chat');
+ const body=reply.value.trim();if(!body)return;
+ try{
+   await api('/api/admin/messages/reply',{method:'POST',body:JSON.stringify({phone:currentPhone,body})});
+   reply.value='';
+   await openThread(currentPhone,false);
+   requestAnimationFrame(()=>scrollToBottom(false));
+   toast('Mensaje enviado');
+ }catch(e){toast(e.message)}
+}
+async function markRead(){
+ if(!currentPhone)return;
+ try{await api('/api/admin/carterapro/read/'+encodeURIComponent(currentPhone),{method:'POST',body:'{}'});await refreshAll(true);toast('Marcado como leído')}catch(e){toast(e.message)}
+}
+function exportChat(){
+ if(!currentPhone||!currentThread.length)return toast('Selecciona un chat');
+ const lines=currentThread.map(m=>`[${fmt(m.createdAt)}] ${bubbleWho(m)}: ${m.body||''}${m.mediaUrl?'\nArchivo: '+m.mediaUrl:''}`);
+ const blob=new Blob([lines.join('\n\n')],{type:'text/plain;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`CarteraPro_chat_${currentPhone}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)
+}
+async function rebuildIndex(){
+ if(!confirm('Esto reconstruirá el índice de conversaciones usando hasta 5000 mensajes históricos. No borra mensajes. ¿Continuar?'))return;
+ try{const d=await api('/api/admin/carterapro/rebuild-index',{method:'POST',body:'{}'});toast(`Índice reconstruido: ${d.count} chats`);await refreshAll()}catch(e){toast(e.message)}
+}
+reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendReply()}});
+messages.addEventListener('scroll',updateJumpBottom,{passive:true});
+messages.addEventListener('wheel',e=>{
+  const el=messages;
+  if(el.scrollHeight>el.clientHeight){
+    el.scrollTop += e.deltaY;
+    e.preventDefault();
+    updateJumpBottom();
+  }
+},{passive:false});
+window.addEventListener('resize',()=>{updateJumpBottom();});
+refreshAll();
+setInterval(()=>refreshAll(true),12000);
+setInterval(()=>{if(currentPhone)openThread(currentPhone,true)},15000);
+</script>
+</body>
+</html>
