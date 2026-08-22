@@ -1,0 +1,19 @@
+Alertas CarteraPro
+
+Se corrigió CORS para X-Cartera-*.
+
+Las alertas importantes incluyen un enlace:
+💬 Responder ahora: https://wa.me/...
+
+Al tocarlo desde el WhatsApp administrativo se abre directamente el chat del cliente con un texto sugerido.
+
+Se añadió a:
+- Prospecto Facebook Ads
+- Prospecto general
+- Demo enviada
+- Carga inicial
+- Pago reportado
+- Registro
+- Solicitud de adaptación de formato
+
+El Inbox web sigue disponible para conversaciones completas.
