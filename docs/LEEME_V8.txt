@@ -1,0 +1,38 @@
+CARTERAPRO V8 — SOLO CARTERAPRO
+
+Qué cambia:
+- Se eliminó por completo el emisor de pólizas.
+- Todo mensaje que llega al webhook de Twilio se guarda PRIMERO en Firebase Realtime Database.
+- Los mensajes se guardan en: chat_messages/{telefono}/{messageId}
+- El resumen de cada conversación se guarda en: conversations/{telefono}
+- Si el aviso al WhatsApp del administrador falla, el mensaje sigue disponible en el panel.
+- Twilio Message Logs funcionan como respaldo: el servidor sincroniza cada 60 segundos y recupera mensajes que el webhook o RTDB hayan omitido temporalmente.
+- Una sola página de administración: /carterapro-admin.html?token=TU_ADMIN_TOKEN
+- /carterapro-inbox.html y /carterapro/admin también abren la misma ventana.
+
+Render:
+Start command: npm start
+Webhook Twilio: https://TU-SERVICIO.onrender.com/twilio/webhook
+
+Variables necesarias:
+TWILIO_ACCOUNT_SID
+TWILIO_AUTH_TOKEN
+TWILIO_WHATSAPP_FROM
+FIREBASE_SERVICE_ACCOUNT_JSON
+FIREBASE_DATABASE_URL
+ADMIN_TOKEN
+ADMIN_NOTIFY_NUMBERS
+PUBLIC_BASE_URL
+
+Opcionales:
+FIREBASE_STORAGE_BUCKET
+CARTERAPRO_ONBOARDING_SECRET
+CARTERAPRO_ALLOWED_ORIGINS
+CARTERAPRO_HUMAN_HANDOFF_HOURS
+
+Después del deploy:
+1. Abrir /health y confirmar storageMode = firebase_realtime_database.
+2. Abrir /carterapro-admin.html?token=...
+3. Presionar “Recuperar desde Twilio”.
+4. Presionar “Reconstruir conversaciones” una sola vez para recuperar el historial anterior.
+5. Enviar un WhatsApp de prueba al número de CarteraPro. Debe aparecer en el panel aunque el aviso al administrador falle.

@@ -1,0 +1,21 @@
+{
+  "name": "carterapro-whatsapp-admin",
+  "version": "8.0.0",
+  "description": "CarteraPro: WhatsApp Twilio + Firebase Realtime Database + panel administrativo unificado",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "check": "node --check src/server.js && node --check src/state.js && node --check src/carterapro_sales.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^13.0.0",
+    "twilio": "^5.4.0"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

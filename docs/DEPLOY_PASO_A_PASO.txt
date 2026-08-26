@@ -1,0 +1,68 @@
+DEPLOY CARTERAPRO V8 — UNA SOLA VENTANA
+
+1) GITHUB
+Reemplaza el contenido del repositorio de Render con este paquete.
+Raíz esperada:
+- package.json
+- package-lock.json
+- src/
+- public/
+- docs/
+
+No hay archivos ni módulos del sistema de emisión.
+
+2) FIREBASE REALTIME DATABASE
+Firebase Console > Realtime Database > Rules.
+Usa docs/firebase/realtime_rules.json y publica.
+
+Los mensajes persistentes quedan en:
+chat_messages/{telefono}/{mensaje}
+conversations/{telefono}
+
+3) RENDER
+Start Command: npm start
+
+Conserva/configura estas variables:
+TWILIO_ACCOUNT_SID
+TWILIO_AUTH_TOKEN
+TWILIO_WHATSAPP_FROM
+FIREBASE_SERVICE_ACCOUNT_JSON
+FIREBASE_DATABASE_URL
+ADMIN_TOKEN
+ADMIN_NOTIFY_NUMBERS
+PUBLIC_BASE_URL
+
+Opcionales:
+FIREBASE_STORAGE_BUCKET
+CARTERAPRO_ONBOARDING_SECRET
+CARTERAPRO_ALLOWED_ORIGINS
+CARTERAPRO_HUMAN_HANDOFF_HOURS
+
+No pegues secretos en chats o repositorios.
+
+4) TWILIO
+El webhook del número de WhatsApp debe seguir apuntando por POST a:
+https://TU-RENDER/twilio/webhook
+
+5) VERIFICACIÓN
+Abre:
+https://TU-RENDER/health
+
+Debe aparecer:
+storageMode: firebase_realtime_database
+firebase.firebaseBackend: realtime
+
+Después abre:
+https://TU-RENDER/carterapro-admin.html?token=TU_ADMIN_TOKEN
+
+6) RECUPERAR MENSAJES QUE YA ESTÁN EN TWILIO
+Dentro del panel:
+- Presiona “Recuperar desde Twilio”.
+- Después “Reconstruir conversaciones” una vez.
+
+7) PRUEBA REAL
+Envía un mensaje nuevo al WhatsApp de CarteraPro.
+El orden ahora es:
+Twilio -> webhook -> guardar en RTDB -> mostrar en panel -> ejecutar bot -> intentar aviso al administrador.
+
+Por eso, aunque falle el aviso al WhatsApp del administrador, el mensaje del prospecto ya quedó guardado y visible en el panel.
