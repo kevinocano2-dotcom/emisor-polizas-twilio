@@ -1,8 +1,0 @@
-INBOX SCROLL FIX
-- El panel central ahora tiene altura contenida correctamente.
-- El historial tiene scroll vertical independiente.
-- La caja para responder queda siempre visible.
-- Botón “Último mensaje” cuando te alejas del final.
-- Al abrir un chat salta al último mensaje.
-- Si estás leyendo mensajes antiguos, las actualizaciones automáticas ya no te regresan abajo.
-- La lista izquierda y el panel derecho también tienen scroll independiente.

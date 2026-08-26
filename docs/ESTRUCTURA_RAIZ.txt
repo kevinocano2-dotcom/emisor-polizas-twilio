@@ -1,6 +1,0 @@
-docs/
-public/
-src/
-templates/
-package-lock.json
-package.json
