@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel de cotizaciones</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#182230;--muted:#667085;--line:#dfe6ef;--blue:#17367d;--green:#067647;--red:#b42318;--yellow:#a15c00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+.wrap{max-width:1280px;margin:auto;padding:18px}.top{background:#0f172a;color:#fff}.top .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+h1{font-size:22px;margin:0}h2{margin:0 0 8px}.spacer{flex:1}button,input,select{font:inherit}
+button{border:0;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}.primary{background:var(--blue);color:#fff}.light{background:#eef2f7;color:#253044}.green{background:#128c7e;color:#fff}.red{background:#fee4e2;color:#912018}
+input,select{border:1px solid #cfd7e3;border-radius:9px;padding:9px;background:#fff}
+.health{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.health>div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#94a3b8;margin-right:6px}.dot.ok{background:#22c55e}.dot.warn{background:#f59e0b}.dot.bad{background:#ef4444}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;margin:12px 0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.configgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}.configgrid input{width:100%}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}table{width:100%;border-collapse:collapse;font-size:12px;min-width:1120px}
+th,td{padding:9px;border-bottom:1px solid #edf0f4;text-align:left;vertical-align:top}th{background:#f8fafc;position:sticky;top:0;z-index:2}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2ff;color:#3538cd;font-size:10px;font-weight:900}
+.small{font-size:11px;color:var(--muted);line-height:1.4}.money{font-weight:900}.other{max-width:260px;white-space:normal}
+.msgchecks{display:grid;gap:5px;min-width:155px}.msgcheck{display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap}.msgcheck .yes{color:#067647;font-weight:900}.msgcheck .no{color:#98a2b3}
+.notes-preview{max-width:220px;white-space:normal;color:#475467;font-size:11px;line-height:1.35;margin-top:6px}
+.follow-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:12px 0}.follow-item{border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}.follow-item label{display:flex;gap:8px;align-items:flex-start;font-size:12px;font-weight:800}.follow-item input{width:auto;margin-top:2px}.follow-item small{display:block;color:var(--muted);margin:4px 0 0 23px}
+textarea{width:100%;min-height:120px;resize:vertical;border:1px solid #cfd7e3;border-radius:9px;padding:10px;font:inherit}
+@media(max-width:700px){.follow-grid{grid-template-columns:1fr}}
+.modalbg{position:fixed;inset:0;background:rgba(15,23,42,.55);display:grid;place-items:center;padding:18px;z-index:50}.modal{background:#fff;border-radius:15px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:18px}.hidden{display:none!important}
+.msg{font-size:12px;margin-top:8px;padding:9px;border-radius:9px;background:#f8fafc}.msg.ok{background:#ecfdf3;color:#067647}.msg.bad{background:#fef3f2;color:#b42318}
+@media(max-width:700px){.health,.configgrid{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><h1>Cotizaciones y prospectos</h1><div class="spacer"></div><button id="refresh" class="light">Actualizar</button><button id="recheck" class="light">Revisar sistemas</button></div></div>
+<main class="wrap">
+  <section class="health">
+   <div><b><span id="aarcoDot" class="dot"></span>AARCO / AXA</b><div id="aarcoText" class="small">Comprobando…</div></div>
+   <div><b><span id="dbDot" class="dot"></span>Base de datos</b><div id="dbText" class="small">Comprobando…</div></div>
+   <div><b><span class="dot ok"></span>Página</b><div class="small">Servidor en línea.</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Acceso AARCO</h2>
+    <p class="small">Si cambia o vence la contraseña, escribe aquí la nueva contraseña normal. El servidor la cifra como Cotizamático, la guarda en Supabase y prueba el acceso.</p>
+    <div class="configgrid">
+      <div><label class="small">Nueva contraseña AARCO</label><input id="aarcoPassword" type="password" placeholder="Escribe sólo si cambió"></div>
+      <div><button id="saveAarcoPassword" class="primary">Guardar contraseña y probar acceso</button></div>
+    </div>
+    <div id="aarcoConfigMsg" class="msg">No se muestra la contraseña actual.</div>
+  </section>
+
+  <section id="funnelBox" class="card">
+   <div class="toolbar">
+    <b>Embudo de los últimos</b>
+    <select id="funnelDays"><option value="1">1 día</option><option value="3">3 días</option><option value="7" selected>7 días</option><option value="30">30 días</option></select>
+    <span id="syncPending" class="small"></span>
+   </div>
+   <div id="funnelMetrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px"></div>
+   <div id="funnelDrop" class="small" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card">
+   <div class="toolbar">
+    <input id="search" placeholder="Buscar nombre, WhatsApp o vehículo" style="min-width:280px">
+    <select id="filterStatus"><option value="">Todos los estados</option><option>nuevo</option><option>cotizando</option><option>cotizado</option><option>interesado</option><option>documentos_recibidos</option><option>vendido</option><option>no_interesado</option><option>error_cotizador</option></select>
+    <span id="count" class="small"></span>
+   </div>
+  </section>
+
+  <div class="tablewrap">
+   <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Vehículo</th><th>AXA</th><th>ANA</th><th>Otras AARCO</th><th>Mensajes</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tbody"></tbody></table>
+  </div>
+</main>
+
+<div id="modalbg" class="modalbg hidden"><div class="modal"><button id="closeModal" class="light" style="float:right">Cerrar</button><div id="modalContent"></div></div></div>
+
+<script>
+let rows=[];
+const $=id=>document.getElementById(id),money=v=>v?new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(Number(v)):'—';
+async function api(url,opt={}){
+ const r=await fetch(url,opt);let j={};try{j=await r.json()}catch{};if(!r.ok)throw new Error(j.error||`HTTP ${r.status}`);return j
+}
+function dot(id,s){$(id).className='dot '+(s==='ok'?'ok':s==='fallback'?'warn':'bad')}
+async function health(force=false){
+ try{
+   if(force)await api('/api/health/recheck',{method:'POST'});
+   const h=await api('/api/health');
+   dot('aarcoDot',h.aarco.state);$('aarcoText').textContent=h.aarco.message;
+   dot('dbDot',h.database.state);$('dbText').textContent=h.database.message;
+ }catch{}
+}
+async function loadFunnel(){
+ try{
+   const d=await fetch('/api/admin/funnel?days='+encodeURIComponent($('funnelDays').value)).then(r=>r.json());
+   $('syncPending').textContent=d.pending_sync?`Pendientes por sincronizar: ${d.pending_sync}`:'Sin pendientes de sincronización';
+   const colors=['#17367d','#234caa','#355db5','#4b70c1','#6b82c5','#8a94c9','#128c7e','#067647'];
+   $('funnelMetrics').innerHTML=(d.stages||[]).map((s,i)=>`<div style="border:1px solid #dfe6ef;border-radius:10px;padding:11px;background:#fff"><div class="small">${esc(s.label)}</div><div style="font-size:25px;font-weight:900;color:${colors[i]||'#17367d'}">${s.count}</div></div>`).join('');
+   const st=d.stages||[];
+   let worst=null;
+   for(let i=1;i<st.length;i++){
+     if(!st[i-1].count)continue;
+     const loss=1-(st[i].count/st[i-1].count);
+     if(!worst||loss>worst.loss)worst={from:st[i-1],to:st[i],loss};
+   }
+   $('funnelDrop').innerHTML=worst?`Mayor abandono medido: <b>${esc(worst.from.label)} → ${esc(worst.to.label)}</b> (${Math.round(worst.loss*100)}% no avanzó).`:'Todavía faltan datos para detectar el mayor abandono.';
+ }catch(e){$('funnelDrop').textContent='No se pudo cargar el embudo.'}
+}
+$('funnelDays').onchange=loadFunnel;
+
+$('refresh').onclick=()=>{load();loadFunnel()};$('recheck').onclick=()=>health(true);$('closeModal').onclick=()=>$('modalbg').classList.add('hidden');
+$('search').oninput=render;$('filterStatus').onchange=render;
+
+$('saveAarcoPassword').onclick=async()=>{
+ const password=$('aarcoPassword').value;
+ if(!password)return alert('Escribe la nueva contraseña.');
+ $('saveAarcoPassword').disabled=true;$('aarcoConfigMsg').className='msg';$('aarcoConfigMsg').textContent='Cifrando, guardando y probando acceso…';
+ try{
+   const j=await api('/api/admin/aarco/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
+   $('aarcoConfigMsg').className='msg '+(j.ok?'ok':'bad');
+   $('aarcoConfigMsg').textContent=j.message+(j.ok?' La nueva contraseña quedó guardada.':'');
+   if(j.ok)$('aarcoPassword').value='';
+   health();
+ }catch(e){
+   $('aarcoConfigMsg').className='msg bad';$('aarcoConfigMsg').textContent=e.message;
+ }finally{$('saveAarcoPassword').disabled=false}
+};
+
+async function load(){rows=await api('/api/admin/leads?limit=250');render()}
+function filtered(){
+ const q=$('search').value.toLowerCase().trim(),s=$('filterStatus').value;
+ return rows.filter(r=>(!s||r.status===s)&&(!q||[r.name,r.whatsapp,r.vehicle_make,r.vehicle_model,r.vehicle_version].join(' ').toLowerCase().includes(q)))
+}
+function render(){
+ const a=filtered();$('count').textContent=`${a.length} registros`;
+ $('tbody').innerHTML=a.map(r=>{
+  const others=(r.all_quotes||[]).filter(x=>x.insurer!=='AXA'&&Number(x.annual?.amplia)>0).sort((x,y)=>x.annual.amplia-y.annual.amplia);
+  const otherHtml=others.slice(0,3).map(x=>`${x.insurer}: <b>${money(x.annual.amplia)}</b>`).join('<br>')+(others.length>3?`<br><span class="small">+${others.length-3} más</span>`:'');
+  return `<tr>
+   <td>${new Date(r.created_at).toLocaleString('es-MX')}</td>
+   <td><b>${esc(r.name||'')}</b><br><span class="small">${esc(r.whatsapp||'')}</span><br><span class="badge">${esc(r.vehicle_origin||'')}</span></td>
+   <td>${esc([r.vehicle_make,r.vehicle_model,r.vehicle_year].filter(Boolean).join(' ') || r.vehicle_notes || 'Datos pendientes')}<br><span class="small">${esc(r.vehicle_version||'')} ${r.vehicle_type?'· '+esc(r.vehicle_type):''}</span>${r.vehicle_notes?`<div class="notes-preview">📝 ${esc(r.vehicle_notes)}</div>`:''}</td>
+   <td><span class="small">AARCO:</span> ${money(r.axa_aarco_price)}<br><span class="money">Mostrado: ${money(r.axa_estimated_price)}</span><br><span class="small">Real: ${money(r.axa_actual_price)}</span></td>
+   <td>${r.ana_third_party_price?'<b>$2,700</b>':'—'}</td>
+   <td class="other">${otherHtml||'<span class="small">Esperando / sin opciones</span>'}</td>
+   <td>
+     <div class="msgchecks">
+       <div class="msgcheck"><span class="${r.msg_axa_sent?'yes':'no'}">${r.msg_axa_sent?'✓':'○'}</span> AXA</div>
+       <div class="msgcheck"><span class="${r.msg_ana_sent?'yes':'no'}">${r.msg_ana_sent?'✓':'○'}</span> ANA $2,700</div>
+       <div class="msgcheck"><span class="${r.msg_other_options_sent?'yes':'no'}">${r.msg_other_options_sent?'✓':'○'}</span> Otras opciones</div>
+       <div class="msgcheck"><span class="${r.msg_followup_sent?'yes':'no'}">${r.msg_followup_sent?'✓':'○'}</span> Seguimiento</div>
+     </div>
+     ${r.comments?`<div class="notes-preview">📝 ${esc(r.comments.slice(0,90))}${r.comments.length>90?'…':''}</div>`:''}
+   </td>
+   <td><select onchange="changeStatus('${r.id}',this.value)">${['nuevo','cotizando','cotizado','interesado','documentos_recibidos','vendido','no_interesado','error_cotizador'].map(x=>`<option ${r.status===x?'selected':''}>${x}</option>`).join('')}</select></td>
+   <td><button class="green" onclick="openWA('${r.id}')">WhatsApp</button> <button class="light" onclick="details('${r.id}')">Detalle</button></td>
+  </tr>`
+ }).join('')
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function changeStatus(id,status){await api('/api/admin/leads/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});const r=rows.find(x=>x.id===id);if(r)r.status=status}
+function openWA(id){const r=rows.find(x=>x.id===id);if(!r)return;const v=[r.vehicle_make,r.vehicle_model,r.vehicle_year].filter(Boolean).join(' ');window.open('https://wa.me/52'+r.whatsapp+'?text='+encodeURIComponent(`Hola ${r.name||''}, soy tu asesor de seguros. Vi tu cotización para ${v}. ¿Te ayudo a confirmar el precio y las coberturas?`),'_blank')}
+function details(id){
+ const r=rows.find(x=>x.id===id);if(!r)return;
+ const others=(r.all_quotes||[]).filter(x=>x.insurer!=='AXA'&&Number(x.annual?.amplia)>0).sort((a,b)=>a.annual.amplia-b.annual.amplia);
+ const msg=others.map(x=>`${x.insurer}: ${money(x.annual.amplia)} anual`).join('\n');
+ $('modalContent').innerHTML=`<h2>${esc(r.name||'Prospecto')}</h2>
+ <p><b>WhatsApp:</b> ${esc(r.whatsapp||'')}<br><b>Vehículo:</b> ${esc([r.vehicle_make,r.vehicle_model,r.vehicle_year].filter(Boolean).join(' ')||'Pendiente')}<br><b>Descripción escrita:</b> ${esc(r.vehicle_notes||'—')}<br><b>Edad/Sexo:</b> ${r.age||'—'} · ${esc(r.sex||'—')}</p>
+ <hr><p><b>Cotización AARCO:</b> ${r.aarco_quote_id||'—'}<br><b>AXA AARCO:</b> ${money(r.axa_aarco_price)}<br><b>AXA mostrado:</b> ${money(r.axa_estimated_price)}<br><b>Versión fórmula:</b> ${esc(r.conversion_version||'—')}</p>
+ <label>Precio AXA real con tu clave</label><div style="display:flex;gap:7px"><input id="actual" type="number" value="${r.axa_actual_price||''}" placeholder="Ej. 10230"><button class="primary" onclick="saveActual('${r.id}')">Guardar</button></div>
+
+ <h3>Mensajes enviados al cliente</h3>
+ <div class="follow-grid">
+   <div class="follow-item"><label><input id="msgAxa" type="checkbox" ${r.msg_axa_sent?'checked':''}> Cotización AXA enviada</label><small>${formatSent(r.msg_axa_sent_at)}</small></div>
+   <div class="follow-item"><label><input id="msgAna" type="checkbox" ${r.msg_ana_sent?'checked':''}> ANA $2,700 enviada</label><small>${formatSent(r.msg_ana_sent_at)}</small></div>
+   <div class="follow-item"><label><input id="msgOthers" type="checkbox" ${r.msg_other_options_sent?'checked':''}> Otras opciones enviadas</label><small>${formatSent(r.msg_other_options_sent_at)}</small></div>
+   <div class="follow-item"><label><input id="msgFollow" type="checkbox" ${r.msg_followup_sent?'checked':''}> Seguimiento enviado</label><small>${formatSent(r.msg_followup_sent_at)}</small></div>
+ </div>
+
+ <label>Comentarios / seguimiento</label>
+ <textarea id="comments" placeholder="Ej. Cliente pidió pago mensual. Llamar mañana después de las 5 pm.">${esc(r.comments||'')}</textarea>
+ <div style="margin-top:8px"><button class="primary" onclick="saveFollowup('${r.id}')">Guardar seguimiento</button></div>
+
+ <h3>Otras opciones guardadas (sin conversión)</h3><pre style="white-space:pre-wrap;background:#f8fafc;padding:12px;border-radius:10px">${esc(msg||'Todavía no hay otras primas guardadas.')}</pre>
+ <button class="light" onclick="copyOthers('${r.id}')">Copiar otras opciones</button>`;
+ $('modalbg').classList.remove('hidden')
+}
+function formatSent(v){
+ if(!v)return 'Pendiente';
+ try{return 'Marcado: '+new Date(v).toLocaleString('es-MX')}catch{return 'Enviado'}
+}
+async function saveFollowup(id){
+ const patch={
+   comments:$('comments').value,
+   msg_axa_sent:$('msgAxa').checked,
+   msg_ana_sent:$('msgAna').checked,
+   msg_other_options_sent:$('msgOthers').checked,
+   msg_followup_sent:$('msgFollow').checked
+ };
+ const updated=await api('/api/admin/leads/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});
+ const r=rows.find(x=>x.id===id);
+ if(r)Object.assign(r,updated);
+ render();
+ alert('Seguimiento guardado.');
+ details(id);
+}
+async function saveActual(id){const value=Number($('actual').value);await api('/api/admin/leads/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({axa_actual_price:value})});const r=rows.find(x=>x.id===id);if(r)r.axa_actual_price=value;render();alert('Precio AXA real guardado.')}
+async function copyOthers(id){const r=rows.find(x=>x.id===id);const o=(r.all_quotes||[]).filter(x=>x.insurer!=='AXA'&&Number(x.annual?.amplia)>0).sort((a,b)=>a.annual.amplia-b.annual.amplia);const lines=['También encontré estas alternativas de cobertura amplia:','',...o.map(x=>`${x.insurer}: ${money(x.annual.amplia)} anual`),'','Precios sujetos a validación y condiciones de cada aseguradora.'];await navigator.clipboard.writeText(lines.join('\n'));alert('Opciones copiadas.')}
+load();health();loadFunnel();setInterval(()=>health(false),60000);setInterval(()=>load().catch(()=>{}),20000);
+</script>
+</body>
+</html>

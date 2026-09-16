@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cotiza tu seguro de auto</title>
+<meta name="description" content="Cotiza seguro AXA para tu auto y opción económica de daños a terceros. Atención rápida por WhatsApp.">
+<style>
+:root{
+ --bg:#f4f7fb;--card:#fff;--ink:#182230;--muted:#667085;--line:#e2e8f0;
+ --axa:#17367d;--axa2:#234caa;--red:#e24b52;--green:#067647;--yellow:#a15c00;--bad:#b42318;
+ --shadow:0 10px 30px rgba(16,24,40,.08)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.statusbar{position:sticky;top:0;z-index:50;background:#0f172a;color:#fff;border-bottom:1px solid #24314d}
+.statuswrap{max-width:1120px;margin:auto;padding:8px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sys{display:flex;align-items:center;gap:6px;font-size:12px}.dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}
+.dot.ok{background:#22c55e}.dot.warn{background:#f59e0b}.dot.bad{background:#ef4444}
+.status-spacer{flex:1}.status-refresh{border:0;background:#1e293b;color:#fff;border-radius:8px;padding:6px 9px;font-size:11px}
+.hero{background:linear-gradient(140deg,#132d67,#244eaa);color:#fff}
+.wrap{max-width:1120px;margin:auto;padding:22px}
+.hero .wrap{padding-top:20px;padding-bottom:18px;display:grid;grid-template-columns:1.3fr .7fr;gap:18px;align-items:center}
+.hero h1{font-size:clamp(28px,4.2vw,44px);line-height:1.02;margin:0 0 8px}
+.hero p{font-size:15px;line-height:1.45;color:#dce7ff;max-width:720px;margin:0}
+.hero-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.hero-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 11px;font-size:12px}
+.hero-card{background:#fff;color:var(--ink);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.hero-price{font-weight:900;font-size:29px;color:var(--axa);margin:5px 0}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 12px rgba(16,24,40,.04);padding:20px;margin:10px 0 18px}
+.progress{display:flex;gap:8px;margin-bottom:18px}
+.progress span{height:6px;background:#e5eaf2;border-radius:999px;flex:1}.progress span.on{background:var(--axa2)}
+h2{font-size:22px;margin:0 0 6px}.lead{color:var(--muted);margin:0 0 18px;line-height:1.5}
+.options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.option{border:2px solid var(--line);background:#fff;border-radius:15px;padding:18px;text-align:left;min-height:108px}
+.option:hover{border-color:#9ab0df}.option.active{border-color:var(--axa2);background:#f5f8ff}
+.option b{display:block;font-size:17px;margin-bottom:5px}.option small{color:var(--muted);line-height:1.35}
+.compact-options .option{min-height:auto;padding:13px}
+.small-help{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4}
+.vehicle-freebox{margin-top:18px;padding:16px;background:#f7faff;border:1px solid #cfe0ff;border-radius:15px}
+.vehicle-freebox b{display:block;font-size:17px;color:var(--axa);margin-bottom:3px}
+.vehicle-freebox span{display:block;font-size:12px;color:var(--muted);margin-bottom:9px}
+.vehicle-freebox textarea{width:100%;min-height:86px;border:1px solid #cfd8e6;border-radius:11px;padding:12px;resize:vertical;font:inherit}
+.start-strip{background:#eef4ff;color:#204b9d;border-radius:10px;padding:8px 11px;font-weight:900;font-size:12px;margin-bottom:12px;text-align:center}
+.start-strip.third-intent{background:#fff7e8;color:#8a4b00;border:1px solid #f4c26b}
+.quick-row{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}
+.compact-options.two{grid-template-columns:repeat(2,1fr)}
+.compact-options.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:700px){.quick-row{grid-template-columns:1fr}.compact-options.three{grid-template-columns:repeat(3,1fr)}}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:800;color:#344054;margin-bottom:6px}
+input,select{width:100%;border:1px solid #cfd8e6;border-radius:11px;background:#fff;padding:12px;color:var(--ink)}
+input:focus,select:focus{outline:3px solid #dbe8ff;border-color:#5f84d8}
+.big-age{font-size:22px;font-weight:800;text-align:center}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{border:0;border-radius:11px;padding:12px 16px;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.primary{background:var(--axa);color:#fff}.btn.primary:hover{background:#102a68}
+.btn.red{background:var(--red);color:#fff}.btn.light{background:#eef2f7;color:#253044}.btn.green{background:#128c7e;color:#fff}
+.btn.block{width:100%}
+.hidden{display:none!important}
+.formstatus{border-radius:11px;padding:11px 12px;margin-top:12px;background:#f2f4f7;color:#475467;font-size:13px}
+.formstatus.bad{background:#fef3f2;color:var(--bad)}.formstatus.warn{background:#fff7e8;color:var(--yellow)}
+.loader{display:flex;gap:12px;align-items:center;background:#fff7e8;border-radius:12px;padding:14px}
+.spinner{width:22px;height:22px;border:3px solid #f4caa7;border-top-color:#dd7117;border-radius:50%;animation:s 1s linear infinite;flex:0 0 auto}@keyframes s{to{transform:rotate(360deg)}}.loadtrack{height:10px;background:#f1dfca;border-radius:999px;overflow:hidden;margin-top:12px}.loadbar{height:100%;width:10%;background:#dd7117;border-radius:999px;transition:width .4s ease}.loadpct{text-align:right;font-size:11px;font-weight:900;color:#a15c00;margin-top:4px}
+.result-head{text-align:center;padding:8px 0 18px}.eyebrow{font-size:12px;font-weight:900;letter-spacing:.07em;color:#59647a;text-transform:uppercase}
+.result-price{font-size:clamp(38px,7vw,64px);font-weight:950;color:var(--axa);line-height:1;margin:8px 0}
+.estimate{display:inline-block;background:#eef4ff;color:#204b9d;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}
+.cover-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.cover{border:1px solid var(--line);border-radius:13px;padding:14px}
+.cover b{display:block;margin-bottom:4px}.cover p{margin:0;color:#5f6b7d;font-size:13px;line-height:1.45}.coverage-amount{display:block;color:var(--axa);font-size:18px;font-weight:950;margin:5px 0}.axa-main-cta{font-size:18px;padding:16px 20px;box-shadow:0 10px 22px rgba(18,140,126,.22);width:100%;max-width:560px}
+.result-contact{max-width:560px;margin:14px auto 0;padding:13px;background:#f8fafc;border:1px solid var(--line);border-radius:13px;text-align:left}
+.result-contact b{display:block;margin-bottom:5px}.result-contact-row{display:grid;grid-template-columns:1fr auto;gap:8px}.result-contact small{display:block;color:var(--muted);margin-top:6px;line-height:1.4}
+.check{color:#16a34a;font-weight:900}
+.payment{background:#f7faff;border:1px solid #cfe0ff;border-radius:16px;padding:18px;margin-top:18px}
+.payment h3{margin:0 0 10px}.payment-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.payitem{background:#fff;border:1px solid #dbe6fb;border-radius:12px;padding:13px}
+.payitem b{display:block;color:var(--axa);margin-bottom:4px}.payitem span{font-size:13px;color:#5f6b7d;line-height:1.45}
+.third{border:2px solid #f4c26b;background:#fffaf0;border-radius:18px;padding:21px;margin-top:20px}
+.third .price{font-size:39px;font-weight:950;color:#8a4b00;margin:8px 0}.third h3{margin:0}
+.third-action{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;text-decoration:none;color:var(--ink);background:#fff;border-radius:13px;padding:14px}
+.third-action span b{display:block;font-size:17px}.third-action span small{display:block;color:var(--muted);margin-top:3px}.third-action strong{font-size:24px;color:#8a4b00;white-space:nowrap}.third-action em{font-style:normal;background:var(--red);color:#fff;border-radius:10px;padding:10px 13px;font-weight:900;white-space:nowrap}.third-note{text-align:center;font-size:11px;color:#8a4b00;margin-top:7px}
+.warning{background:#fff6ed;border-left:4px solid #f79009;border-radius:9px;padding:11px 13px;color:#7a2e0e;font-size:12px;line-height:1.5}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.trust div{background:#f8fafc;border-radius:12px;padding:13px;font-size:13px;color:#475467}
+.whatsapp-float{position:fixed;right:18px;bottom:18px;z-index:40;background:#128c7e;color:#fff;border-radius:999px;padding:13px 17px;text-decoration:none;font-weight:900;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.system-alert{max-width:1120px;margin:12px auto 0;padding:0 16px}.system-alert>div{background:#fff0f0;border:1px solid #ffc9c9;border-radius:12px;padding:10px 12px;color:#982727;font-size:13px}
+footer{text-align:center;color:#98a2b3;font-size:11px;padding:20px 14px 38px}
+@media(max-width:850px){.hero .wrap{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.trust{grid-template-columns:1fr}}
+@media(max-width:620px){.wrap{padding:14px}.options,.grid,.grid4,.cover-grid,.payment-grid{grid-template-columns:1fr}.hero .wrap{padding-top:24px;padding-bottom:24px}.whatsapp-float{right:12px;bottom:12px}.third-action{grid-template-columns:1fr}.third-action em{text-align:center}.third-action strong{font-size:28px}}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" style="color:#bcd0ff">Seguro de auto · cotización rápida</div>
+      <h1>Cotiza tu seguro en aproximadamente 1 minuto.</h1>
+      <p>Conoce un estimado de AXA y recibe atención personalizada por WhatsApp si quieres continuar. Rápido, sencillo y sin compromiso.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⚡ Cotiza en 1 min</span>
+        <span class="hero-badge">💬 Atención personalizada por WhatsApp</span>
+        <span class="hero-badge">✓ Sin compromiso</span>
+        <span class="hero-badge">💳 Facilidades de pago AXA</span>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="eyebrow">Opción económica</div>
+      <b style="font-size:20px">¿Sólo quieres asegurar daños a terceros?</b>
+      <div class="hero-price">$2,700 al año</div>
+      <button id="heroThirdBtn" class="btn red block">Cotizar esta opción</button>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" style="padding-top:8px">
+<section class="card" id="formCard">
+  <div class="start-strip">⚡ Empieza aquí · te toma menos de 1 minuto</div>
+  <div class="progress"><span id="p1" class="on"></span><span id="p2"></span></div>
+
+  <div id="step1">
+    <h2>¿Qué auto quieres asegurar?</h2>
+    <p class="lead">Selecciona lo que sepas. Si no encuentras tu auto, escríbelo abajo y seguimos.</p>
+
+    <div class="quick-row">
+      <div>
+        <label>Origen</label>
+        <div class="options compact-options two">
+          <button class="option origin" data-value="mexicano"><b>🇲🇽 Mexicano</b></button>
+          <button class="option origin" data-value="americano"><b>🇺🇸 Americano</b></button>
+        </div>
+      </div>
+      <div>
+        <label>Tipo</label>
+        <div class="options compact-options three">
+          <button class="option vtype" data-value="sedan"><b>🚗 Sedán</b></button>
+          <button class="option vtype" data-value="pickup"><b>🛻 Pickup</b></button>
+          <button class="option vtype" data-value="otro"><b>🚙 Otro</b></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mexicanVehicle" class="grid4" style="margin-top:14px">
+      <div><label>Año</label><select id="modelo"><option value="">Selecciona</option></select></div>
+      <div><label>Marca</label><select id="marca" disabled><option value="">Selecciona año</option></select></div>
+      <div><label>Modelo</label><select id="submarca" disabled><option value="">Selecciona marca</option></select></div>
+      <div><label>Versión</label><select id="version" disabled><option value="">Selecciona modelo</option></select></div>
+    </div>
+
+    <div id="americanVehicle" class="grid hidden" style="margin-top:14px">
+      <div><label>Año</label><input id="amYear" inputmode="numeric" maxlength="4" placeholder="Ej. 2015"></div>
+      <div><label>Marca</label><input id="amMake" placeholder="Ej. Ford"></div>
+      <div><label>Modelo</label><input id="amModel" placeholder="Ej. F-150"></div>
+    </div>
+
+    <div class="vehicle-freebox">
+      <b>¿No aparece tu automóvil o tienes dudas?</b>
+      <span>Escríbelo aquí como tú lo conoces. Nosotros revisamos el dato exacto.</span>
+      <textarea id="vehicleNotes" placeholder="Ej. Toyota Tacoma 2004, cabina y media, automática, 4 cilindros, legalizada, no 4x4…"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary block" id="vehicleNextBtn">Continuar</button>
+    </div>
+  </div>
+
+  <div id="step2" class="hidden">
+    <h2>¿A qué WhatsApp te enviamos la atención?</h2>
+    <p class="lead">Este es el único dato obligatorio. Edad y sexo son opcionales y ayudan a afinar AXA.</p>
+
+    <div class="grid">
+      <div style="grid-column:1/-1">
+        <label>WhatsApp</label>
+        <input id="phone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Ej. 662 198 9843 o +52 662 198 9843" style="font-size:22px;font-weight:850;padding:15px">
+        <div class="small-help">Puedes escribirlo con espacios, guiones, paréntesis o +52. Sólo contamos los dígitos.</div>
+      </div>
+      <div><label>Edad (opcional)</label><input id="age" class="big-age" type="number" inputmode="numeric" min="18" max="95" placeholder="Ej. 27"></div>
+      <div><label>Sexo (opcional)</label><select id="sex"><option value="">Prefiero no decirlo</option><option value="hombre">Hombre</option><option value="mujer">Mujer</option></select></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn light back" data-step="1">Atrás</button>
+      <button class="btn primary" id="quoteBtn">Ver mis opciones</button>
+    </div>
+    <div id="formStatus" class="formstatus hidden"></div>
+  </div>
+</section>
+
+<section id="loadingCard" class="card hidden">
+  <div class="loader"><div class="spinner"></div><div style="width:100%"><b id="loadingTitle">Buscando tu precio AXA…</b><br><span id="loadingText" class="lead" style="margin:0;font-size:12px">Estamos consultando AXA. Tu resultado aparecerá en cuanto responda.</span>
+    <div class="loadtrack"><div id="loadbar" class="loadbar"></div></div>
+    <div id="loadpct" class="loadpct">10%</div>
+  </div></div>
+</section>
+
+<section id="resultCard" class="card hidden">
+  <div id="axaResult" class="hidden">
+    <div class="result-head">
+      <div class="eyebrow">AXA · cobertura amplia</div>
+      <div id="quoteNumber" class="lead" style="margin:5px 0 0"></div>
+      <div id="axaPrice" class="result-price">$0</div>
+      <span class="estimate">PRECIO ESTIMADO ANUAL</span>
+      <p class="lead" style="max-width:700px;margin:13px auto 0">Una cobertura pensada para proteger tu vehículo, a quienes viajan contigo y tu patrimonio frente a accidentes, robo y daños a terceros.</p>
+      <div class="actions" style="justify-content:center;margin-top:18px">
+        <a id="waAxa" class="btn green axa-main-cta" target="_blank">Sí, me interesa esta cotización AXA</a>
+      </div>
+      <div class="lead" style="font-size:12px;margin:8px auto 0">Te atendemos personalmente por WhatsApp para confirmar precio, documentos y forma de pago.</div>
+      <div class="result-contact">
+        <b>¿Prefieres que nosotros te contactemos?</b>
+        <div class="result-contact-row">
+          <input id="resultPhone" inputmode="tel" autocomplete="tel" maxlength="10" placeholder="Tu WhatsApp (10 dígitos)">
+          <button id="savePhoneBtn" class="btn primary">Contactarme</button>
+        </div>
+        <small>Es opcional. En celular, tu navegador puede sugerir tu número guardado para llenarlo con un toque.</small>
+      </div>
+    </div>
+
+    <div class="cover-grid">
+      <div class="cover"><b><span class="check">✓</span> Daños materiales</b><span class="coverage-amount">Valor comercial · 5% deducible</span><p>Protección para los daños de tu auto por un accidente cubierto.</p></div>
+      <div class="cover"><b><span class="check">✓</span> Robo total</b><span class="coverage-amount">Valor comercial · 10% deducible</span><p>Protección en caso de robo total del vehículo.</p></div>
+      <div class="cover"><b><span class="check">✓</span> Responsabilidad civil</b><span class="coverage-amount">$1,500,000</span><p>Protege tu patrimonio por daños que causes a terceros.</p></div>
+      <div class="cover"><b><span class="check">✓</span> Gastos médicos ocupantes</b><span class="coverage-amount">Desde $200,000</span><p>Apoyo para atención médica de quienes viajan en el vehículo. El monto exacto se confirma en la propuesta final.</p></div>
+      <div class="cover"><b><span class="check">✓</span> RC personas en exceso</b><span class="coverage-amount">$150,000</span><p>Protección adicional conforme a las condiciones de la cotización AXA.</p></div>
+      <div class="cover"><b><span class="check">✓</span> Cristales</b><span class="coverage-amount">Amparado · 20% deducible</span><p>Protección para rotura de cristales conforme a las condiciones contratadas.</p></div>
+      <div class="cover"><b><span class="check">✓</span> Defensa legal y asistencia</b><span class="coverage-amount">Amparadas</span><p>Apoyo legal y asistencia vial conforme a la póliza.</p></div>
+      <div class="cover"><b><span class="check">✓</span> RC en el extranjero</b><span class="coverage-amount">Amparada</span><p>Protección aplicable conforme a condiciones cuando circules fuera de México.</p></div>
+    </div>
+    <div class="warning" style="margin-top:12px">Las sumas y condiciones mostradas son una referencia de la cobertura AXA que manejamos. Antes de emitir confirmamos la versión exacta del vehículo, fecha de nacimiento y condiciones finales.</div>
+
+    <div class="payment">
+      <h3>Facilidades de pago AXA</h3>
+      <div class="payment-grid">
+        <div class="payitem"><b>Meses sin intereses</b><span>Disponibles con tarjetas de crédito participantes cuando exista promoción vigente de AXA.</span></div>
+        <div class="payitem"><b>3, 6 o hasta 12 cargos</b><span>También puedes diferir el pago mediante cargos automáticos a tarjeta. Las condiciones exactas se confirman al emitir.</span></div>
+      </div>
+      <div class="actions">
+        <a id="waPayment" class="btn primary" target="_blank" href="#">Quiero revisar pagos a meses</a>
+        <a id="waCoverage" class="btn light" target="_blank" href="#">Quiero modificar coberturas</a>
+      </div>
+      <p class="lead" style="font-size:12px;margin:10px 0 0">Podemos revisar deducibles, sumas aseguradas o coberturas adicionales para adaptar la propuesta a lo que buscas. Cualquier cambio puede modificar el precio.</p>
+    </div>
+
+  </div>
+
+  <div id="thirdPartyResult" class="third hidden">
+    <a id="waThird" class="third-action" target="_blank" href="#">
+      <span><b>¿Prefieres la opción más económica?</b><small>ANA · daños a terceros</small></span>
+      <strong>$2,700/año</strong>
+      <em>Quiero esta opción →</em>
+    </a>
+    <div class="third-note">No cubre daños ni robo de tu propio vehículo.</div>
+  </div>
+
+  <div class="trust">
+    <div><b>Sin compromiso</b><br>Primero revisas el estimado; después decides si quieres continuar.</div>
+    <div><b>Atención rápida</b><br>Si te interesa el precio, mandas tus documentos directamente por WhatsApp.</div>
+    <div><b>Propuesta personalizada</b><br>Antes de emitir confirmamos datos, cobertura, forma de pago y precio final.</div>
+  </div>
+</section>
+</main>
+
+<a id="waFloat" class="whatsapp-float" target="_blank">WhatsApp · Atención personalizada</a>
+<footer>Precios informativos sujetos a validación, características exactas del vehículo, campañas vigentes y condiciones de la aseguradora.</footer>
+
+<script>
+const PHONE='526621989843';
+const $=id=>document.getElementById(id);
+const money=v=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(Number(v||0));
+function normalizePhone(value){
+ const digits=String(value||'').replace(/\D/g,'');
+ if(digits.length<10)return {valid:false,digits,local:''};
+ return {valid:true,digits,local:digits.slice(-10)};
+}
+const sessionId=sessionStorage.getItem('cotizador_session_id') || (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random()));
+sessionStorage.setItem('cotizador_session_id',sessionId);
+const sessionRef='WEB-'+String(sessionId).replace(/-/g,'').slice(0,6).toUpperCase();
+
+let state={origin:'',type:'',leadId:null,quote:null,sourceParams:{},thirdIntent:false};
+
+function sourceParams(){
+ const p=new URLSearchParams(location.search),o={};
+ ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid','gclid'].forEach(k=>{if(p.get(k))o[k]=p.get(k)});
+ return o
+}
+state.sourceParams=sourceParams();
+
+async function api(url,opt){
+ const r=await fetch(url,opt);let j={};try{j=await r.json()}catch{}
+ if(!r.ok)throw Object.assign(new Error(j.error||`HTTP ${r.status}`),{payload:j,status:r.status});
+ return j
+}
+function sel(el){
+ const o=el?.options?.[el.selectedIndex],value=o?.value||'';
+ return{value,text:value?(o?.dataset?.text||o?.textContent||'').trim():''}
+}
+function currentVehicle(){
+ if(state.origin==='mexicano'){
+   const y=sel($('modelo')),m=sel($('marca')),sm=sel($('submarca')),v=sel($('version'));
+   return {vehicle_year:Number(y.text)||Number(y.value)||null,vehicle_make:m.text,vehicle_model:sm.text,vehicle_version:v.text,
+     modelo_id:y.value,modelo_text:y.text,marca_id:m.value,marca_text:m.text,submarca_id:sm.value,submarca_text:sm.text,version_id:v.value,version_text:v.text}
+ }
+ return {
+   vehicle_year:Number($('amYear')?.value)||null,
+   vehicle_make:$('amMake')?.value?.trim()||'',
+   vehicle_model:$('amModel')?.value?.trim()||'',
+   vehicle_version:''
+ }
+}
+function snapshot(){
+ const v=currentVehicle();
+ return {
+   session_id:sessionId,
+   vehicle_origin:state.origin,
+   vehicle_type:state.type,
+   ...v,
+   vehicle_notes:$('vehicleNotes')?.value?.trim()||'',
+   age:Number($('age')?.value)||null,
+   sex:$('sex')?.value||'',
+   whatsapp:normalizePhone($('phone')?.value).local,
+   lead_id:state.leadId||null,
+   axa_estimated_price:state.quote?.axa?.estimated_price||null,
+   aarco_quote_id:state.quote?.quote_id||null
+ }
+}
+function trackFunnel(event,data={}){
+ const payload={session_id:sessionId,event,state:snapshot(),data,source_params:state.sourceParams};
+ try{fetch('/api/funnel/event',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify(payload)}).catch(()=>{})}catch{}
+}
+trackFunnel('page_view',{ref:sessionRef});
+
+$('heroThirdBtn').onclick=()=>{
+ state.thirdIntent=true;
+ const strip=document.querySelector('.start-strip');
+ if(strip){
+   strip.textContent='💰 Seguro a terceros $2,700 · selecciona Sedán o Pickup';
+   strip.classList.add('third-intent');
+ }
+ trackFunnel('ana_interest_top',{price:2700});
+ $('formCard').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+function showStep(n){
+ for(let i=1;i<=2;i++){
+   $('step'+i).classList.toggle('hidden',i!==n);
+   $('p'+i).classList.toggle('on',i<=n)
+ }
+ window.scrollTo({top:$('formCard').offsetTop-10,behavior:'smooth'})
+}
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>showStep(Number(b.dataset.step)));
+
+function activateCard(selector,button,key){
+ document.querySelectorAll(selector).forEach(x=>x.classList.remove('active'));
+ button.classList.add('active');state[key]=button.dataset.value;
+}
+document.querySelectorAll('.origin').forEach(b=>b.onclick=()=>{
+ activateCard('.origin',b,'origin');
+ trackFunnel('origin_selected',{value:state.origin});
+ prepareVehicle();
+});
+document.querySelectorAll('.vtype').forEach(b=>b.onclick=()=>{
+ activateCard('.vtype',b,'type');
+ trackFunnel('vehicle_type_selected',{value:state.type});
+ if(state.thirdIntent && !['sedan','pickup'].includes(state.type)){
+   const strip=document.querySelector('.start-strip');
+   if(strip)strip.textContent='El precio de $2,700 aplica a Sedán o Pickup. Para otro vehículo podemos cotizarte por WhatsApp.';
+ }
+});
+
+async function prepareVehicle(){
+ const mex=state.origin!=='americano';
+ $('mexicanVehicle').classList.toggle('hidden',!mex);
+ $('americanVehicle').classList.toggle('hidden',mex);
+ if(mex && $('modelo').options.length<=1)loadModelos()
+}
+async function loadModelos(){
+ try{fillSelect($('modelo'),await api('/api/catalog/modelos'),'iIdModelo','sModelo','Selecciona')}
+ catch(e){$('modelo').innerHTML='<option value="">Catálogo no disponible</option>'}
+}
+function fillSelect(el,items,vk,tk,ph){
+ el.innerHTML=`<option value="">${ph}</option>`;
+ (items||[]).forEach(x=>{const o=document.createElement('option');o.value=x[vk];o.textContent=String(x[tk]??'').trim();o.dataset.text=o.textContent;el.appendChild(o)});
+ el.disabled=false
+}
+function resetSel(id,text){$(id).innerHTML=`<option value="">${text}</option>`;$(id).disabled=true}
+
+$('modelo').onchange=async()=>{
+ trackFunnel('year_selected',{year:sel($('modelo')).text});
+ resetSel('marca','Cargando…');resetSel('submarca','Selecciona marca');resetSel('version','Selecciona modelo');
+ if(!$('modelo').value)return;
+ try{fillSelect($('marca'),await api('/api/catalog/marcas?modelo='+encodeURIComponent($('modelo').value)),'iIdMarca','sMarca','Selecciona marca')}catch{}
+}
+$('marca').onchange=async()=>{
+ trackFunnel('make_selected',{make:sel($('marca')).text});
+ resetSel('submarca','Cargando…');resetSel('version','Selecciona modelo');
+ if(!$('marca').value)return;
+ try{fillSelect($('submarca'),await api('/api/catalog/submarcas?modelo='+encodeURIComponent($('modelo').value)+'&marca='+encodeURIComponent($('marca').value)),'iIdModeloSubmarca','sDescripcion','Selecciona modelo')}catch{}
+}
+$('submarca').onchange=async()=>{
+ trackFunnel('model_selected',{model:sel($('submarca')).text});
+ resetSel('version','Cargando…');
+ if(!$('submarca').value)return;
+ try{fillSelect($('version'),await api('/api/catalog/versiones?submarca='+encodeURIComponent($('submarca').value)),'iIdDescripcionModelo','sDescripcion','Selecciona versión')}catch{}
+}
+$('version').onchange=()=>{if($('version').value)trackFunnel('vehicle_complete')}
+
+['amYear','amMake','amModel','vehicleNotes'].forEach(id=>{
+ $(id).addEventListener('change',()=>{
+   const map={amYear:'year_selected',amMake:'make_selected',amModel:'model_selected',vehicleNotes:'vehicle_notes'};
+   trackFunnel(map[id]||'vehicle_partial');
+ })
+});
+
+$('vehicleNextBtn').onclick=()=>{
+ const hasSomething =
+   state.origin || state.type ||
+   $('vehicleNotes').value.trim() ||
+   $('modelo').value || $('amYear').value.trim() || $('amMake').value.trim() || $('amModel').value.trim();
+ if(!hasSomething){
+   $('vehicleNotes').focus();
+   return;
+ }
+ trackFunnel('vehicle_step_completed');
+ showStep(2)
+};
+
+$('phone').oninput=()=>{
+ const raw=$('phone').value;
+ // Permit familiar telephone formatting. Validation uses digits only.
+ $('phone').value=raw.replace(/[^0-9+()\-\s]/g,'').slice(0,20);
+};
+$('age').addEventListener('change',()=>trackFunnel('age_entered',{age:Number($('age').value)||null}));
+$('sex').addEventListener('change',()=>trackFunnel('sex_selected',{sex:$('sex').value}));
+
+async function saveLead(event){
+ const p={...snapshot(),lead_id:state.leadId,status:'nuevo',last_event:event,source_params:state.sourceParams};
+ if(p.whatsapp.length!==10)return false;
+ try{
+   const j=await api('/api/leads/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+   state.leadId=j.lead_id||state.leadId;
+   return true
+ }catch{return false}
+}
+function quotePayload(){return {...snapshot(),lead_id:state.leadId,session_id:sessionId,source_params:state.sourceParams,status:'nuevo'}}
+
+let progressTimer=null;
+function startQuoteProgress(){
+ clearInterval(progressTimer);let pct=12;
+ $('loadbar').style.width=pct+'%';$('loadpct').textContent=pct+'%';$('loadingText').textContent='Preparando tu solicitud…';
+ progressTimer=setInterval(()=>{
+   pct=Math.min(84,pct+Math.floor(Math.random()*9)+4);
+   $('loadbar').style.width=pct+'%';$('loadpct').textContent=pct+'%';
+   $('loadingText').textContent=pct<45?'Revisando tu vehículo…':pct<70?'Consultando AXA…':'Ya casi está listo…'
+ },900)
+}
+function finishQuoteProgress(){clearInterval(progressTimer);$('loadbar').style.width='100%';$('loadpct').textContent='100%';$('loadingText').textContent='¡Listo!'}
+
+$('quoteBtn').onclick=async()=>{
+ const phoneInfo=normalizePhone($('phone').value);
+ if(!phoneInfo.valid){
+   showFormStatus('Escribe un WhatsApp válido. Puede incluir +52, espacios o guiones; necesitamos al menos 10 dígitos.','warn');
+   $('phone').focus();return;
+ }
+ trackFunnel('phone_saved');
+ await saveLead('telefono_capturado');
+ if($('age').value || $('sex').value) trackFunnel('personal_complete');
+ trackFunnel('quote_started');
+
+ $('formStatus').classList.add('hidden');
+ $('loadingCard').classList.remove('hidden');
+ $('resultCard').classList.add('hidden');
+ startQuoteProgress();
+
+ try{
+   const j=await api('/api/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(quotePayload())});
+   state.leadId=j.lead_id||state.leadId;state.quote=j;finishQuoteProgress();
+   await new Promise(r=>setTimeout(r,150));renderResult(j)
+ }catch(e){
+   clearInterval(progressTimer);
+   showFormStatus('Tu solicitud quedó registrada. Te ayudamos directamente por WhatsApp.','warn');
+   renderResult({lead_id:state.leadId,type:'manual',manual:true,axa:null,third_party:null})
+ }finally{$('loadingCard').classList.add('hidden')}
+}
+function showFormStatus(t,type){$('formStatus').textContent=t;$('formStatus').className='formstatus '+type}
+
+function vehicleText(){
+ const v=currentVehicle(),notes=$('vehicleNotes').value.trim();
+ const exact=[v.vehicle_make,v.vehicle_model,v.vehicle_year].filter(Boolean).join(' ');
+ return exact || notes || 'mi vehículo'
+}
+function wa(text){return'https://wa.me/'+PHONE+'?text='+encodeURIComponent(text)}
+function track(event,choice){
+ trackFunnel(event,{choice});
+ if(state.leadId){
+   fetch('/api/leads/event',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify({...snapshot(),lead_id:state.leadId,event,choice,status:'interesado'})}).catch(()=>{})
+ }
+}
+function setWa(id,text,event,choice){const a=$(id);a.href=wa(text);a.onclick=()=>track(event,choice)}
+
+function refreshGenericWhatsappLinks(){
+ const veh=vehicleText();
+ const code=sessionRef;
+ setWa(
+   'waPayment',
+   `Hola, quiero información sobre las facilidades de pago de AXA. Código ${code}. Vehículo: ${veh}. Me interesa revisar MSI o pagos en 3, 6 y hasta 12 cargos.`,
+   'whatsapp_pagos',
+   'AXA_PAGOS'
+ );
+ setWa(
+   'waCoverage',
+   `Hola, quiero una cotización AXA personalizada. Código ${code}. Vehículo: ${veh}. Me interesa modificar coberturas, deducibles o sumas aseguradas.`,
+   'whatsapp_coberturas',
+   'AXA_AJUSTES'
+ );
+}
+
+function renderResult(j){
+ state.quote=j;$('resultCard').classList.remove('hidden');
+ const eligible=['sedan','pickup'].includes(state.type);
+ $('axaResult').classList.toggle('hidden',!j.axa);
+ $('thirdPartyResult').classList.toggle('hidden',!(j.third_party&&eligible));
+ const veh=vehicleText(),phone=normalizePhone($('phone').value).local;
+ refreshGenericWhatsappLinks();
+
+ if(j.axa){
+   trackFunnel('axa_shown',{price:j.axa.estimated_price});
+   $('axaPrice').textContent=money(j.axa.estimated_price);
+   $('quoteNumber').textContent=(j.quote_id?'Referencia: '+j.quote_id+' · ':'')+'Código '+sessionRef;
+   setWa('waAxa',`Hola, me interesa esta cotización AXA. Código ${sessionRef}. Vehículo: ${veh}. Estimado: ${money(j.axa.estimated_price)} al año. Mi WhatsApp es ${phone}. Quiero confirmar precio y enviar documentos.`,'whatsapp_axa','AXA');
+   setWa('waPayment',`Hola, me interesa AXA. Código ${sessionRef}. Vehículo: ${veh}. Quiero revisar facilidades de pago.`,'whatsapp_pagos','AXA_PAGOS');
+   setWa('waCoverage',`Hola, me interesa AXA. Código ${sessionRef}. Vehículo: ${veh}. Quiero revisar coberturas o deducibles.`,'whatsapp_coberturas','AXA_AJUSTES')
+ }else{
+   $('axaResult').classList.remove('hidden');
+   $('axaPrice').textContent='Te contactamos';
+   $('quoteNumber').textContent='Solicitud '+sessionRef;
+   const intro=$('axaResult').querySelector('.result-head .lead');
+   if(intro)intro.textContent='Ya tenemos tu WhatsApp. Si faltó algún dato o tu automóvil no apareció, nosotros hacemos la cotización personalizada.';
+   setWa('waAxa',`Hola, dejé mi solicitud en el cotizador. Código ${sessionRef}. Vehículo: ${veh}. Mi WhatsApp es ${phone}. Necesito ayuda para completar la cotización.`,'whatsapp_ayuda_formulario','AYUDA');
+   $('waAxa').textContent='Continuar por WhatsApp';
+ }
+ if(j.third_party&&eligible){
+   setWa('waThird',`Hola, me interesa ANA daños a terceros por $2,700 al año. Código ${sessionRef}. Vehículo: ${veh}. Mi WhatsApp es ${phone}.`,'whatsapp_terceros','ANA_2700')
+ } else if(state.thirdIntent && eligible) {
+   $('thirdPartyResult').classList.remove('hidden');
+   setWa('waThird',`Hola, me interesa ANA daños a terceros por $2,700 al año. Código ${sessionRef}. Vehículo: ${veh}. Mi WhatsApp es ${phone}. Quiero continuar.`,'whatsapp_terceros','ANA_2700')
+ }
+
+ const rc=document.querySelector('.result-contact');if(rc)rc.classList.add('hidden');
+ $('resultCard').scrollIntoView({behavior:'smooth',block:'start'})
+}
+
+function helpText(){
+ return `Hola, necesito ayuda con mi cotización. Código ${sessionRef}. Vehículo: ${vehicleText()}.`
+}
+$('waFloat').href=wa(helpText());
+$('waFloat').onclick=()=>{$('waFloat').href=wa(helpText());track('whatsapp_ayuda','AYUDA')};
+refreshGenericWhatsappLinks();
+
+window.addEventListener('beforeunload',()=>{
+ try{navigator.sendBeacon('/api/funnel/event',new Blob([JSON.stringify({session_id:sessionId,event:'page_exit',state:snapshot(),source_params:state.sourceParams})],{type:'application/json'}))}catch{}
+});
+</script>
+</body>
+</html>

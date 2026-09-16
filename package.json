@@ -1,0 +1,12 @@
+{
+  "name": "cotizador-seguros-axa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cotizador cliente AXA + ANA terceros, AARCO backend y Supabase.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
